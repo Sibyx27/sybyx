@@ -1,0 +1,50 @@
+# =============================================================================
+# SNTC — Configuration Supabase (CLI)
+# Doc : https://supabase.com/docs/guides/cli/config
+# =============================================================================
+
+project_id = "sntc-mali"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "sntc", "storage", "graphql_public"]
+extra_search_path = ["public", "sntc"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:8080"
+# Le pilote utilise le téléphone + mot de passe (faible adoption de l'email au Mali)
+enable_signup = false                 # comptes provisionnés par l'admin uniquement
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+
+[auth.email]
+enable_confirmations = false
+
+# Stockage des photos d'arrivée et d'inspection
+[storage]
+enabled = true
+file_size_limit = "10MiB"
+
+# --- Edge Functions ---------------------------------------------------------
+[functions.creer-livraison]
+verify_jwt = true
+
+[functions.valider-arrivee]
+verify_jwt = true
+
+[functions.balayage-alertes]
+verify_jwt = false                    # déclenchée par pg_cron via secret partagé
+
+# --- Tâche planifiée : balayage des alertes toutes les 15 minutes -----------
+# Configurée via pg_cron dans la migration optionnelle 0006_cron.sql

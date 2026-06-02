@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SNTC — Tableau de bord national</title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet" />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+  <!-- Écran de connexion -->
+  <div id="login" class="login">
+    <div class="login-card">
+      <h1 class="logo">SNTC</h1>
+      <p class="tagline">Système National de Traçabilité des Carburants</p>
+      <input id="email" type="email" placeholder="email@sntc.ml" autocomplete="username" />
+      <input id="password" type="password" placeholder="Mot de passe" autocomplete="current-password" />
+      <button id="btn-login">Se connecter</button>
+      <p id="login-error" class="error"></p>
+      <p class="gov">République du Mali · Ministère en charge de l'Énergie</p>
+    </div>
+  </div>
+
+  <!-- Application -->
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <span class="brand">SNTC</span>
+      <span class="title">Tableau de bord national</span>
+      <span class="spacer"></span>
+      <span id="user-label" class="user"></span>
+      <button id="btn-logout" class="logout">Déconnexion</button>
+    </header>
+
+    <section class="kpis" id="kpis"><!-- injecté --></section>
+
+    <main class="grid">
+      <div class="map-wrap">
+        <div id="map"></div>
+        <div class="legend">
+          <span><i style="background:#1E9E5A"></i> Normal</span>
+          <span><i style="background:#E8B500"></i> Faible</span>
+          <span><i style="background:#D33A2C"></i> Rupture</span>
+          <span><i style="background:#2B2B2B"></i> Inactive</span>
+        </div>
+      </div>
+
+      <aside class="side">
+        <h2>Alertes critiques</h2>
+        <ul id="alertes" class="list"></ul>
+        <h2>Stations suspectes</h2>
+        <ul id="suspectes" class="list"></ul>
+      </aside>
+    </main>
+
+    <section class="regions">
+      <h2>Stock par région</h2>
+      <table id="regions-table"><thead><tr>
+        <th>Région</th><th>Stations</th><th>Essence (L)</th><th>Gasoil (L)</th><th>Ruptures</th>
+      </tr></thead><tbody></tbody></table>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+  <script src="config.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

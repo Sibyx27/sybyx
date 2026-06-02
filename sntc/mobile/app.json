@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "SNTC",
+    "slug": "sntc-mali",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "sntc",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0E2240"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "ml.gouv.sntc",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0E2240"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA"
+      ]
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "ml.gouv.sntc"
+    },
+    "plugins": [
+      ["expo-location", { "locationAlwaysAndWhenInUsePermission": "SNTC utilise votre position pour valider les livraisons." }],
+      ["expo-camera", { "cameraPermission": "SNTC utilise la caméra pour scanner les QR Codes et photographier les livraisons." }],
+      "expo-secure-store"
+    ],
+    "extra": {
+      "supabaseUrl": "https://VOTRE_PROJET.supabase.co",
+      "supabaseAnonKey": "VOTRE_CLE_ANON",
+      "mapboxToken": "VOTRE_TOKEN_MAPBOX"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+# Secrets & configuration locale
+web-dashboard/config.js
+.env
+.env.*
+*.local
+
+# Dépendances
+node_modules/
+mobile/node_modules/
+
+# Build / Expo
+mobile/.expo/
+mobile/dist/
+mobile/android/
+mobile/ios/
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
