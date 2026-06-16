@@ -38,6 +38,13 @@ Les fiches distribuées en fin de journée existent aussi en **version mobile** 
 
 Pour régénérer une version mobile : `python3 build_pdf.py --mobile <fichier>.md`
 
+### Documents de clôture (administratif)
+
+| Fichier | Livrable |
+|---|---|
+| [`attestation-participation.md`](./attestation-participation.md) | Modèle d'attestation de participation (1 par participant, à personnaliser et signer) |
+| [`evaluation-a-chaud.md`](./evaluation-a-chaud.md) | Fiche d'évaluation à chaud (10 affirmations notées 1-5 + questions ouvertes), à remplir anonymement en fin de formation |
+
 ## Méthode de production
 
 Kit produit par une équipe de 3 agents en pipeline :
