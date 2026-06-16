@@ -9,13 +9,24 @@ Formation de 2 jours destinée aux équipes de PME et grandes entreprises malien
 
 ## Contenu du kit
 
+Chaque fichier `.md` est accompagné de sa version `.pdf` (A4, prête à imprimer/diffuser), générée par [`build_pdf.py`](./build_pdf.py).
+
+### Jour 1
+
 | Fichier | Livrable |
 |---|---|
-| [`J1-pedagogie.md`](./J1-pedagogie.md) | Contenu pédagogique Jour 1 — Module 1 (matin) + Module 2 (après-midi), validé et adapté au contexte malien |
+| [`J1-pedagogie.md`](./J1-pedagogie.md) | Contenu pédagogique Jour 1 — Module 1 (intro IA + cas Afrique) + Module 2 (prompting CRTF), validé et adapté au contexte malien |
 | [`logistique-1-checklist-materiel.md`](./logistique-1-checklist-materiel.md) | Checklist matériel formateur (6 catégories, secours EDM/réseau) |
 | [`logistique-2-plan-de-salle.md`](./logistique-2-plan-de-salle.md) | Plan de salle pour 15 participants (disposition en U, recharge mobile) |
 | [`logistique-3-protocole-coupure.md`](./logistique-3-protocole-coupure.md) | Protocole coupure EDM / réseau (3 scénarios, seuils de décision) |
 | [`logistique-4-fiche-recap-J1.md`](./logistique-4-fiche-recap-J1.md) | Fiche récap J1 à imprimer et distribuer aux participants |
+
+### Jour 2
+
+| Fichier | Livrable |
+|---|---|
+| [`J2-pedagogie.md`](./J2-pedagogie.md) | Contenu pédagogique Jour 2 — Module 3 (prompting avancé & cas par métier) + Module 4 (déploiement en entreprise + plan d'adoption 30 jours) + annexe 8 prompts métier |
+| [`logistique-J2-kit-complet.md`](./logistique-J2-kit-complet.md) | Logistique J2 : checklist complémentaire, déroulé horaire (intensité réseau/batterie), organisation des 4 ateliers métier, fiche récap/clôture J2 |
 
 ## Méthode de production
 
