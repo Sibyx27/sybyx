@@ -46,6 +46,13 @@ Pour régénérer une version mobile : `python3 build_pdf.py --mobile <fichier>.
 | [`evaluation-a-chaud.md`](./evaluation-a-chaud.md) | Fiche d'évaluation à chaud (10 affirmations notées 1-5 + questions ouvertes), à remplir anonymement en fin de formation |
 | [`actualite-ia-veille.md`](./actualite-ia-veille.md) | Veille « actualité IA » pour le formateur — instantané daté (international + Afrique/Mali) **à régénérer avant chaque session** ; inclut un prompt CRTF de mise à jour |
 
+### Module thématique ciblé RH
+
+| Fichier | Livrable |
+|---|---|
+| [`RH-ia-formation.md`](./RH-ia-formation.md) | Formation « L'IA en Ressources Humaines : intérêt, risques et opportunités » — 7 cas d'usage RH (prompts CRTF), 6 risques, 5 opportunités, bonnes pratiques, 2 exercices terrain et charte RH |
+| [`charte-ia-rh.md`](./charte-ia-rh.md) | Charte d'usage de l'IA en RH (12 règles) en document autonome à personnaliser/signer — version standard et **mobile** (`charte-ia-rh-mobile.pdf`) |
+
 ## Méthode de production
 
 Kit produit par une équipe de 3 agents en pipeline :
