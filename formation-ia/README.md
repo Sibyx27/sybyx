@@ -53,6 +53,20 @@ Pour régénérer une version mobile : `python3 build_pdf.py --mobile <fichier>.
 | [`RH-ia-formation.md`](./RH-ia-formation.md) | Formation « L'IA en Ressources Humaines : intérêt, risques et opportunités » — 7 cas d'usage RH (prompts CRTF), 6 risques, 5 opportunités, bonnes pratiques, 2 exercices terrain et charte RH |
 | [`charte-ia-rh.md`](./charte-ia-rh.md) | Charte d'usage de l'IA en RH (12 règles) en document autonome à personnaliser/signer — version standard et **mobile** (`charte-ia-rh-mobile.pdf`) |
 
+### Module thématique ciblé Comptabilité & Finance
+
+| Fichier | Livrable |
+|---|---|
+| [`compta-finance-ia-formation.md`](./compta-finance-ia-formation.md) | Formation « L'IA en Comptabilité & Finance : intérêt, risques et opportunités » — 7 cas d'usage (prompts CRTF), 5 risques (calcul, confidentialité, conformité fiscale, dépendance, fraude), 6 opportunités, feu tricolore, 2 exercices terrain et charte. Prudence renforcée : aucun taux/règle DGI ou SYSCOHADA asséné, renvoi systématique au recalcul/expert-comptable/DGI |
+| [`charte-ia-compta-finance.md`](./charte-ia-compta-finance.md) | Charte d'usage de l'IA en Comptabilité & Finance (12 règles) en document autonome à personnaliser/signer — version standard et **mobile** (`charte-ia-compta-finance-mobile.pdf`) |
+
+### Module thématique ciblé Communication & Marketing
+
+| Fichier | Livrable |
+|---|---|
+| [`com-marketing-ia-formation.md`](./com-marketing-ia-formation.md) | Formation « L'IA en Communication & Marketing : intérêt, risques et opportunités » — 7 cas d'usage (prompts CRTF), 6 risques (fausses infos, confidentialité, authenticité, droits à l'image, contexte culturel, dépendance), 7 opportunités, feu tricolore, 2 exercices terrain et charte. Éthique renforcée : interdiction des fausses informations et des faux avis, respect du droit à l'image et de la vie privée |
+| [`charte-ia-com-marketing.md`](./charte-ia-com-marketing.md) | Charte d'usage de l'IA en Communication & Marketing (12 règles) en document autonome à personnaliser/signer — version standard et **mobile** (`charte-ia-com-marketing-mobile.pdf`) |
+
 ## Méthode de production
 
 Kit produit par une équipe de 3 agents en pipeline :
