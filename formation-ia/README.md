@@ -27,6 +27,16 @@ Chaque fichier `.md` est accompagné de sa version `.pdf` (A4, prête à imprime
 |---|---|
 | [`J2-pedagogie.md`](./J2-pedagogie.md) | Contenu pédagogique Jour 2 — Module 3 (prompting avancé & cas par métier) + Module 4 (déploiement en entreprise + plan d'adoption 30 jours) + annexe 8 prompts métier |
 | [`logistique-J2-kit-complet.md`](./logistique-J2-kit-complet.md) | Logistique J2 : checklist complémentaire, déroulé horaire (intensité réseau/batterie), organisation des 4 ateliers métier, fiche récap/clôture J2 |
+| [`fiche-recap-J2.md`](./fiche-recap-J2.md) | Fiche récap/clôture J2 en document participant autonome (extraite du kit logistique) |
+
+### Fiches participant — format mobile
+
+Les fiches distribuées en fin de journée existent aussi en **version mobile** (page étroite type écran de téléphone, texte agrandi), à diffuser via WhatsApp aux participants :
+
+- `logistique-4-fiche-recap-J1-mobile.pdf`
+- `fiche-recap-J2-mobile.pdf`
+
+Pour régénérer une version mobile : `python3 build_pdf.py --mobile <fichier>.md`
 
 ## Méthode de production
 
