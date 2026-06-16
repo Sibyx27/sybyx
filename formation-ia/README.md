@@ -44,6 +44,7 @@ Pour régénérer une version mobile : `python3 build_pdf.py --mobile <fichier>.
 |---|---|
 | [`attestation-participation.md`](./attestation-participation.md) | Modèle d'attestation de participation (1 par participant, à personnaliser et signer) |
 | [`evaluation-a-chaud.md`](./evaluation-a-chaud.md) | Fiche d'évaluation à chaud (10 affirmations notées 1-5 + questions ouvertes), à remplir anonymement en fin de formation |
+| [`actualite-ia-veille.md`](./actualite-ia-veille.md) | Veille « actualité IA » pour le formateur — instantané daté (international + Afrique/Mali) **à régénérer avant chaque session** ; inclut un prompt CRTF de mise à jour |
 
 ## Méthode de production
 
