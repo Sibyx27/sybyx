@@ -9,18 +9,30 @@ URL de production : `https://sybyx27.github.io/sibyx/`
 
 ```
 sibyx-site/
-├── index.html              Page d'accueil
-├── methode-seo.html        Méthode SEO — framework en 16 piliers
-├── mentions-legales.html   Mentions légales / RGPD
-├── styles.css              Styles (design tokens, responsive)
-├── script.js               Interactions (nav mobile, formulaire)
-├── robots.txt              Indexation moteurs
-├── sitemap.xml             Plan de site
-├── README.md               Ce fichier
+├── index.html                      Page d'accueil
+├── methode-seo.html                Méthode SEO — hub des 16 piliers + FAQ
+├── analytics.html                  Service — Analytics
+├── google-ads.html                 Service — Google Ads
+├── intelligence-artificielle.html  Service — Intelligence Artificielle
+├── mentions-legales.html           Mentions légales / RGPD
+├── methode/                        Silo SEO : 1 page par pilier (16 pages)
+│   ├── idee.html … objectif.html
+├── styles.css                      Styles (design tokens, responsive)
+├── script.js                       Interactions (nav mobile, formulaire)
+├── robots.txt                      Indexation moteurs
+├── sitemap.xml                     Plan de site (généré)
+├── README.md                       Ce fichier
+├── _build/
+│   └── generate.py                 Générateur des pages piliers/services + sitemap
 └── assets/
-    ├── logo.svg            Logo "Arc mandé" complet
-    └── favicon.svg         Favicon simplifié
+    ├── logo.svg                    Logo "Arc mandé" complet
+    ├── favicon.svg                 Favicon simplifié
+    └── og-cover.svg                Image de partage (Open Graph / Twitter)
 ```
+
+> Les pages du dossier `methode/` et les pages services sont générées par
+> `python3 _build/generate.py` (contenu rédigé dans le script, pas de
+> dépendance). Le sitemap est régénéré au passage.
 
 ## Stack
 
