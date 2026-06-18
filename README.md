@@ -10,6 +10,7 @@ URL de production : `https://sybyx27.github.io/sibyx/`
 ```
 sibyx-site/
 ├── index.html              Page d'accueil
+├── methode-seo.html        Méthode SEO — framework en 16 piliers
 ├── mentions-legales.html   Mentions légales / RGPD
 ├── styles.css              Styles (design tokens, responsive)
 ├── script.js               Interactions (nav mobile, formulaire)

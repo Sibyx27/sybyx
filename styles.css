@@ -569,6 +569,18 @@ section { padding-block: var(--sp-20); }
   font-weight: 500;
 }
 
+.service-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-top: 1.5rem;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--gold-text);
+  transition: gap var(--t-base), color var(--t-fast);
+}
+.service-link:hover { color: var(--navy); gap: 0.85em; }
+
 /* ─── POURQUOI / WHY ──────────────────────────────────────── */
 .why { background: var(--paper); }
 .why-grid {
@@ -1245,4 +1257,182 @@ section { padding-block: var(--sp-20); }
 .legal-back {
   margin-top: 4rem;
   text-align: center;
+}
+
+/* ═════════════════════════════════════════════════════════════
+   PAGE MÉTHODE SEO — framework 16 piliers
+   ═════════════════════════════════════════════════════════════ */
+
+/* Fil d'Ariane */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--grey);
+  margin-bottom: 1.5rem;
+}
+.breadcrumb a {
+  color: var(--gold-text);
+  transition: color var(--t-fast);
+}
+.breadcrumb a:hover { color: var(--navy); }
+.breadcrumb span[aria-hidden] { color: var(--grey-light); }
+.breadcrumb [aria-current="page"] { color: var(--navy); }
+
+/* Hero méthode : un peu plus compact que la home */
+.method-hero { padding-block: clamp(3.5rem, 9vh, 6rem) clamp(4rem, 10vh, 7rem); }
+
+/* État courant dans la nav */
+.nav-primary [aria-current="page"] { color: var(--gold-text); }
+.nav-primary [aria-current="page"]::after { transform: scaleX(1); }
+.nav-mobile [aria-current="page"] { color: var(--gold-text); }
+
+/* Section framework */
+.framework { background: var(--cream); }
+
+/* Phase : libellé à gauche, cartes à droite (desktop) */
+.phase {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) 1fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  padding-block: var(--sp-10);
+  border-top: 1px solid var(--grey-light);
+}
+.phase:first-of-type { border-top: 0; padding-top: 0; }
+
+.phase-label { position: sticky; top: 110px; align-self: start; }
+
+.phase-index {
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-text);
+  display: block;
+  margin-bottom: 0.85rem;
+}
+.phase-index::before {
+  content: "";
+  display: inline-block;
+  width: 28px;
+  height: 2px;
+  background: var(--gold);
+  vertical-align: middle;
+  margin-right: 0.75rem;
+}
+
+.phase-name {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: 500;
+  color: var(--navy);
+  line-height: 1.2;
+  margin-bottom: 0.85rem;
+  letter-spacing: -0.01em;
+}
+
+.phase-desc {
+  font-size: var(--fs-sm);
+  color: var(--grey);
+  line-height: 1.6;
+  max-width: 34ch;
+}
+
+/* Grille de piliers */
+.pillar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.pillar-card {
+  padding: 1.75rem 1.6rem;
+  background: var(--paper);
+  border: 1px solid var(--grey-light);
+  border-radius: 4px;
+  position: relative;
+  transition:
+    transform var(--t-base),
+    box-shadow var(--t-base),
+    border-color var(--t-base);
+}
+.pillar-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--gold-light);
+  box-shadow: var(--shadow-md);
+}
+
+.pillar-num {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--gold-text);
+  letter-spacing: 0.1em;
+  display: block;
+  margin-bottom: 0.85rem;
+}
+
+.pillar-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  color: var(--navy);
+  margin-bottom: 0.6rem;
+  line-height: 1.2;
+}
+
+.pillar-desc {
+  font-size: var(--fs-sm);
+  color: var(--grey);
+  line-height: 1.55;
+  margin-bottom: 1.1rem;
+}
+
+.pillar-list {
+  border-top: 1px solid var(--grey-soft);
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.pillar-list li {
+  font-size: var(--fs-sm);
+  color: var(--navy-soft);
+  padding-left: 1.2rem;
+  position: relative;
+}
+.pillar-list li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: var(--gold-text);
+  font-weight: 500;
+}
+
+/* Carte « Objectif » : mise en avant */
+.pillar-card--goal {
+  background: var(--navy);
+  border-color: var(--navy-soft);
+}
+.pillar-card--goal .pillar-num { color: var(--gold); }
+.pillar-card--goal .pillar-title { color: var(--cream); }
+.pillar-card--goal .pillar-desc { color: var(--cream-2); }
+.pillar-card--goal .pillar-list { border-top-color: rgba(255, 255, 255, 0.14); }
+.pillar-card--goal .pillar-list li { color: var(--cream-2); }
+.pillar-card--goal .pillar-list li::before { color: var(--gold-light); }
+.pillar-card--goal:hover { border-color: var(--gold); }
+
+/* Responsive méthode */
+@media (max-width: 860px) {
+  .phase { grid-template-columns: 1fr; gap: 1.75rem; }
+  .phase-label { position: static; }
+  .phase-desc { max-width: none; }
+}
+@media (max-width: 480px) {
+  .pillar-grid { grid-template-columns: 1fr; }
+  .pillar-card { padding: 1.5rem 1.4rem; }
 }
