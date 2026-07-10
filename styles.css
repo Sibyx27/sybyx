@@ -688,64 +688,6 @@ section { padding-block: var(--sp-20); }
   line-height: 1.65;
 }
 
-/* ─── RÉFÉRENCES / TÉMOIGNAGES ────────────────────────────── */
-.testimonials { background: var(--paper); }
-
-.testimonial-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-}
-
-.testimonial-card {
-  padding: 2.75rem;
-  background: var(--cream);
-  border: 1px solid var(--grey-light);
-  border-radius: var(--radius-md);
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--t-base), box-shadow var(--t-base), border-color var(--t-base);
-}
-.testimonial-card::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: var(--gold);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--t-base);
-}
-.testimonial-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--gold-light);
-}
-.testimonial-card:hover::before { transform: scaleX(1); }
-
-.testimonial-mark {
-  font-family: var(--font-display);
-  font-size: 2.75rem;
-  line-height: 1;
-  color: var(--gold-light);
-  font-style: italic;
-  margin-bottom: 1rem;
-}
-
-.testimonial-name {
-  font-family: var(--font-display);
-  font-size: var(--fs-xl);
-  font-weight: 600;
-  color: var(--navy);
-}
-
-.testimonial-role {
-  margin-top: 0.4rem;
-  font-size: var(--fs-sm);
-  color: var(--grey);
-}
-
 /* ─── FAQ ─────────────────────────────────────────────────── */
 .faq { background: var(--cream); }
 
@@ -1220,16 +1162,14 @@ section { padding-block: var(--sp-20); }
 
 @media (max-width: 480px) {
   .footer-cols { grid-template-columns: 1fr; }
-  .service-card, .testimonial-card { padding: 2rem 1.5rem; }
+  .service-card { padding: 2rem 1.5rem; }
   .stat-num { font-size: 2.5rem; }
 }
 
 /* ─── Hover capability detection ──────────────────────────── */
 @media (hover: none) {
-  .service-card:hover,
-  .testimonial-card:hover { transform: none; box-shadow: var(--shadow-sm); }
-  .service-card:hover::before,
-  .testimonial-card:hover::before { transform: scaleX(0); }
+  .service-card:hover { transform: none; box-shadow: var(--shadow-sm); }
+  .service-card:hover::before { transform: scaleX(0); }
   .btn:hover { transform: none; }
 }
 
