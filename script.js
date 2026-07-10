@@ -71,7 +71,7 @@
   //  - Safety net : tout est révélé après 2,5s, même si l'observer rate
 
   const revealTargets = document.querySelectorAll(
-    '.service-card, .why-item, .approach-step, .stat'
+    '.service-card, .why-item, .approach-step, .testimonial-card, .stat'
   );
 
   const revealEl = (el) => {
