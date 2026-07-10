@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://sybyx27.github.io/sibyx/</loc>
+    <loc>https://sibyx27.github.io/sybyx/</loc>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://sybyx27.github.io/sibyx/mentions-legales.html</loc>
+    <loc>https://sibyx27.github.io/sybyx/mentions-legales.html</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
