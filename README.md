@@ -93,6 +93,38 @@ Pour suivre les visites :
 4. Copiez la balise `<meta name="google-site-verification" content="...">` et collez-la dans le `<head>` de `index.html`.
 5. Une fois vérifié, soumettez votre sitemap : `https://sybyx27.github.io/sibyx/sitemap.xml`
 
+## Articles / Blog
+
+Le site inclut un mini-blog statique dans `articles/`, sans CMS ni build
+étape : chaque article est un fichier `.html` autonome.
+
+```
+articles/
+├── index.html                          Page hub (liste des articles)
+├── geo-optimisation-ia-generative.html
+├── seo-local-bamako.html
+├── ia-entreprise-mali.html
+└── _template.html                      Point de départ pour un nouvel article
+```
+
+### Publier un nouvel article
+
+1. Dupliquez `articles/_template.html` en `articles/mon-nouvel-article.html`
+   (nom de fichier = slug, sans espaces ni accents).
+2. Remplissez les balises `<title>`, `<meta name="description">`, les
+   balises Open Graph/Twitter, `canonical`, le JSON-LD `Article`
+   (`headline`, `description`, `datePublished`, `mainEntityOfPage`) et le
+   corps de l'article dans `.article-body`.
+3. Ajoutez une carte pour ce nouvel article dans `articles/index.html`
+   (bloc `.articles-hub-grid`) et, si l'article est récent/mis en avant,
+   dans la section « Articles » de `index.html` (bloc `.article-grid`).
+4. Ajoutez l'URL du nouvel article dans `sitemap.xml`.
+5. Commitez et poussez — GitHub Pages republie automatiquement.
+
+Le style du corps d'article (titres, listes, citations, encart `.article-note`,
+bloc d'appel à l'action `.article-cta`) est défini dans `styles.css`, section
+« ARTICLES ».
+
 ## Accessibilité
 
 - WCAG 2.1 AA visé (contrastes vérifiés)
