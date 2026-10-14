@@ -69,6 +69,8 @@ h2 small{font-family:var(--body);font-size:12px;font-weight:500;color:var(--encr
 .panier .in{max-width:548px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
 .lignes{font-size:13px;color:var(--encre-2);max-height:40px;overflow:auto}
 .lignes button{color:var(--rouge);font-weight:700;margin-left:2px}
+.lignes .libre{width:96px;padding:4px 8px;font-size:13px;display:inline-block;border-color:var(--rouge)}
+.lignes{max-height:72px}
 .row{display:flex;align-items:center;gap:8px}
 .total{margin-left:auto;font-family:var(--display);font-weight:800;font-size:26px}
 .go{background:var(--rouge);color:#fff;font-weight:700;border-radius:10px;padding:12px;font-size:16px;flex:1}
@@ -164,7 +166,7 @@ pre.wa{white-space:pre-wrap;background:var(--surface);border:1px solid var(--lig
 const mem={};
 function lire(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return k in mem?mem[k]:d}}
 function ecrire(k,v){mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-function effacerTout(){try{Object.keys(localStorage).filter(k=>k.startsWith("bbs:")).forEach(k=>localStorage.removeItem(k))}catch(e){}Object.keys(mem).forEach(k=>delete mem[k])}
+function effacerTout(){try{Object.keys(localStorage).filter(k=>k.startsWith("bbs2:")).forEach(k=>localStorage.removeItem(k))}catch(e){}Object.keys(mem).forEach(k=>delete mem[k])}
 
 const cleJ=(d=new Date())=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -178,38 +180,44 @@ const CATS=["Produits (stock)","Électricité","Loyer","Matériel","Entretien","
 // ———— Configuration (prix d'exemple, à remplacer par les vrais) ————
 const CONF_DEFAUT={code:"1234",fid:10,demo:true,
   coiffeurs:[{id:"c1",n:"Coiffeur 1",pct:50},{id:"c2",n:"Coiffeur 2",pct:50}],
-  services:[{id:"s1",n:"Coupe",p:2000},{id:"s2",n:"Dégradé",p:2500},{id:"s3",n:"Barbe",p:1000},{id:"s4",n:"Coupe + barbe",p:3000},{id:"s5",n:"Enfant",p:1000},{id:"s6",n:"Coupe femme",p:2500},{id:"s7",n:"Coloration",p:5000},{id:"s8",n:"Masque visage",p:3000},{id:"s9",n:"Twists / locks",p:5000}],
+  // Tarifs réels relevés sur balila-barber.netlify.app (octobre 2026). p:0 = prix à confirmer au salon, saisi à la caisse.
+  services:[
+    {id:"c_simple",cat:"Classiques",n:"Coupe simple",p:1000},{id:"c_zero",cat:"Classiques",n:"Boule à zéro",p:1000},{id:"c_enfant",cat:"Classiques",n:"Coupe simple enfant",p:500},
+    {id:"d_classique",cat:"Dégradés",n:"Dégradé classique",p:2000},{id:"d_haut",cat:"Dégradés",n:"Dégradé haut",p:2000},{id:"d_th",cat:"Dégradés",n:"Taper High",p:2000},{id:"d_tm",cat:"Dégradés",n:"Taper Mid",p:2000},{id:"d_tl",cat:"Dégradés",n:"Taper Low",p:2000},{id:"d_drop",cat:"Dégradés",n:"Drop Fade",p:2000},{id:"d_mohawk",cat:"Dégradés",n:"Mohawk Fade",p:2000},{id:"d_waves",cat:"Dégradés",n:"Waves + Fade",p:2000},{id:"d_locs",cat:"Dégradés",n:"Locs + Fade",p:10000},
+    {id:"k_blanc",cat:"Couleur & design",n:"Dégradé blanc",p:5000},{id:"k_rouge",cat:"Couleur & design",n:"Dégradé rouge",p:5000},{id:"k_orange",cat:"Couleur & design",n:"Dégradé orange",p:5000},{id:"k_design",cat:"Couleur & design",n:"Hair Design",p:2000},
+    {id:"a_curly",cat:"Afro & bouclé",n:"Curly",p:8000},
+    {id:"t_box",cat:"Tresses & locks",n:"Box Braids",p:10000},{id:"t_corn",cat:"Tresses & locks",n:"Cornrows",p:10000},{id:"t_stitch",cat:"Tresses & locks",n:"Stitch Braids",p:10000},{id:"t_starter",cat:"Tresses & locks",n:"Starter Locs",p:10000},{id:"t_barrel",cat:"Tresses & locks",n:"Barrel Twist",p:10000},{id:"t_two",cat:"Tresses & locks",n:"Two-Strand Twist",p:10000},{id:"t_faux",cat:"Tresses & locks",n:"Faux Locks",p:0}],
   produits:[{id:"p1",n:"Cire",p:3000,stock:12},{id:"p2",n:"Huile barbe",p:4000,stock:3},{id:"p3",n:"Après-rasage",p:2500,stock:8}]};
 
-let conf=lire("bbs:conf",null);
-if(!conf){conf=structuredClone(CONF_DEFAUT);ecrire("bbs:conf",conf);semerDemo();}
-function saveConf(){ecrire("bbs:conf",conf)}
+let conf=lire("bbs2:conf",null);
+if(!conf){conf=structuredClone(CONF_DEFAUT);ecrire("bbs2:conf",conf);semerDemo();}
+function saveConf(){ecrire("bbs2:conf",conf)}
 
-let cle=cleJ(), jour=lire("bbs:j:"+cle,{ventes:[],dep:[],fond:null,reel:null});
-let rdv=lire("bbs:rdv",[]), clients=lire("bbs:cli",{});
-const saveJ=()=>ecrire("bbs:j:"+cle,jour), saveR=()=>ecrire("bbs:rdv",rdv), saveC=()=>ecrire("bbs:cli",clients);
+let cle=cleJ(), jour=lire("bbs2:j:"+cle,{ventes:[],dep:[],fond:null,reel:null});
+let rdv=lire("bbs2:rdv",[]), clients=lire("bbs2:cli",{});
+const saveJ=()=>ecrire("bbs2:j:"+cle,jour), saveR=()=>ecrire("bbs2:rdv",rdv), saveC=()=>ecrire("bbs2:cli",clients);
 
 function semerDemo(){
   const now=new Date(), at=(h,m)=>{const d=new Date(now);d.setHours(h,m,0,0);return d.getTime()};
   const s=id=>CONF_DEFAUT.services.find(x=>x.id===id), p=id=>CONF_DEFAUT.produits.find(x=>x.id===id);
   const it=(o,k)=>({k,id:o.id,n:o.n,p:o.p,q:1});
   const v=[
-    {t:at(9,40),coif:"c1",items:[it(s("s2"),"s")],pay:"Espèces",tel:"76000001",nom:"Moussa (exemple)"},
-    {t:at(10,15),coif:"c2",items:[it(s("s4"),"s"),it(p("p1"),"p")],pay:"Orange Money",tel:"66000002",nom:"Ibrahim (exemple)"},
-    {t:at(11,5),coif:"c1",items:[it(s("s1"),"s")],pay:"Wave",tel:"",nom:""},
-    {t:at(11,50),coif:"c2",items:[it(s("s3"),"s")],pay:"Espèces",tel:"",nom:""}];
+    {t:at(9,40),coif:"c1",items:[it(s("d_tm"),"s")],pay:"Espèces",tel:"76000001",nom:"Moussa (exemple)"},
+    {t:at(10,15),coif:"c2",items:[it(s("t_box"),"s"),it(p("p1"),"p")],pay:"Orange Money",tel:"66000002",nom:"Ibrahim (exemple)"},
+    {t:at(11,5),coif:"c1",items:[it(s("c_simple"),"s")],pay:"Wave",tel:"",nom:""},
+    {t:at(11,50),coif:"c2",items:[it(s("c_enfant"),"s")],pay:"Espèces",tel:"",nom:""}];
   v.forEach(x=>x.total=x.items.reduce((a,i)=>a+i.p*i.q,0));
-  ecrire("bbs:j:"+cleJ(),{ventes:v,dep:[{t:at(9,0),cat:"Électricité",m:2000,note:"Recharge compteur (exemple)",esp:true}],fond:5000,reel:null});
+  ecrire("bbs2:j:"+cleJ(),{ventes:v,dep:[{t:at(9,0),cat:"Électricité",m:2000,note:"Recharge compteur (exemple)",esp:true}],fond:5000,reel:null});
   const d=cleJ();
-  ecrire("bbs:rdv",[
-    {id:uid(),date:d,h:"14:00",nom:"Seydou (exemple)",tel:"79000003",sid:"s2",coif:"c1",st:"prevu"},
-    {id:uid(),date:d,h:"15:30",nom:"Adama (exemple)",tel:"76000001",sid:"s4",coif:"c2",st:"prevu"},
-    {id:uid(),date:d,h:"17:00",nom:"Bakary (exemple)",tel:"65000004",sid:"s1",coif:"c1",st:"prevu"}]);
-  ecrire("bbs:cli",{"76000001":{nom:"Moussa (exemple)",v:9,der:at(9,40)},"66000002":{nom:"Ibrahim (exemple)",v:4,der:at(10,15)}});
+  ecrire("bbs2:rdv",[
+    {id:uid(),date:d,h:"14:00",nom:"Seydou (exemple)",tel:"79000003",sid:"d_drop",coif:"c1",st:"prevu"},
+    {id:uid(),date:d,h:"15:30",nom:"Adama (exemple)",tel:"76000001",sid:"t_corn",coif:"c2",st:"prevu"},
+    {id:uid(),date:d,h:"17:00",nom:"Bakary (exemple)",tel:"65000004",sid:"k_blanc",coif:"c1",st:"prevu"}]);
+  ecrire("bbs2:cli",{"76000001":{nom:"Moussa (exemple)",v:9,der:at(9,40)},"66000002":{nom:"Ibrahim (exemple)",v:4,der:at(10,15)}});
   // historique de la semaine pour la démo
   [1,2,3,4,5,6].forEach(i=>{const dd=new Date(now.getTime()-i*864e5);const n=[6,9,4,11,7,8][i-1];
-    const vv=Array.from({length:n},(_,j)=>{const sv=CONF_DEFAUT.services[(i+j)%9];return{t:dd.getTime(),coif:j%2?"c2":"c1",items:[{k:"s",id:sv.id,n:sv.n,p:sv.p,q:1}],total:sv.p,pay:PAIES[j%3]}});
-    ecrire("bbs:j:"+cleJ(dd),{ventes:vv,dep:[],fond:null,reel:null})});
+    const vv=Array.from({length:n},(_,j)=>{const pay=CONF_DEFAUT.services.filter(x=>x.p>0&&x.p<=5000);const sv=pay[(i*3+j)%pay.length];return{t:dd.getTime(),coif:j%2?"c2":"c1",items:[{k:"s",id:sv.id,n:sv.n,p:sv.p,q:1}],total:sv.p,pay:PAIES[j%3]}});
+    ecrire("bbs2:j:"+cleJ(dd),{ventes:vv,dep:[],fond:null,reel:null})});
   // services sur 9 positions pour l'historique
 
 }
@@ -241,9 +249,9 @@ const ICON={caisse:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height
   clients:'<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .6 3 2.8 3 6"/></svg>',
   gerant:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>'};
 function render(){
-  if(cleJ()!==cle){cle=cleJ();jour=lire("bbs:j:"+cle,{ventes:[],dep:[],fond:null,reel:null})}
+  if(cleJ()!==cle){cle=cleJ();jour=lire("bbs2:j:"+cle,{ventes:[],dep:[],fond:null,reel:null})}
   document.getElementById("date").textContent=new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
-  document.getElementById("bandeau").innerHTML=conf.demo?`<div class="demo"><span>Démo SIBYX : données et prix d'exemple.</span>${confReset?`<button data-reset2>Oui, tout effacer</button><button data-reset0>Annuler</button>`:`<button data-reset>Effacer et démarrer pour de vrai</button>`}</div>`:"";
+  document.getElementById("bandeau").innerHTML=conf.demo?`<div class="demo"><span>Démo SIBYX : vrais tarifs du salon, clients et ventes d'exemple.</span>${confReset?`<button data-reset2>Oui, tout effacer</button><button data-reset0>Annuler</button>`:`<button data-reset>Effacer et démarrer pour de vrai</button>`}</div>`:"";
   const L={caisse:"Caisse",rdv:"Rendez-vous",clients:"Clients",gerant:"Gérant"};
   document.getElementById("nav").innerHTML=Object.keys(L).map(k=>`<button data-vue="${k}" aria-pressed="${k===vue}">${ICON[k]}${L[k]}</button>`).join("");
   const app=document.getElementById("app");
@@ -255,8 +263,9 @@ function render(){
 
 function vCaisse(){
   let h=`<div class="lbl">Coiffeur</div><div class="chips">${conf.coiffeurs.map(c=>`<button class="chip" data-coif="${c.id}" aria-pressed="${c.id===coif}">${esc(c.n)}</button>`).join("")}</div>`;
-  h+=`<div class="lbl">Prestations</div><div class="grille">${conf.services.map(s=>{const q=panier.filter(i=>i.k==="s"&&i.id===s.id).reduce((a,i)=>a+i.q,0);
-    return`<button class="tuile" data-add="s:${s.id}"><span class="n">${esc(s.n)}</span><span class="p num">${s.p.toLocaleString("fr-FR")}</span>${q?`<span class="q">${q}</span>`:""}</button>`}).join("")}</div>`;
+  const cats=[...new Set(conf.services.map(s=>s.cat||"Autres"))];
+  cats.forEach(c=>{h+=`<div class="lbl">${esc(c)}</div><div class="grille">${conf.services.filter(s=>(s.cat||"Autres")===c).map(s=>{const q=panier.filter(i=>i.k==="s"&&i.id===s.id).reduce((a,i)=>a+i.q,0);
+    return`<button class="tuile" data-add="s:${s.id}"><span class="n">${esc(s.n)}</span><span class="p num">${s.p?s.p.toLocaleString("fr-FR"):`<span class="s">Prix à confirmer</span>`}</span>${q?`<span class="q">${q}</span>`:""}</button>`}).join("")}</div>`});
   h+=`<div class="lbl">Produits</div><div class="grille">${conf.produits.map(p=>{const q=panier.filter(i=>i.k==="p"&&i.id===p.id).reduce((a,i)=>a+i.q,0);const rest=p.stock-q;
     return`<button class="tuile" data-add="p:${p.id}" ${rest<=0?"disabled":""}><span class="n">${esc(p.n)}</span><span class="p num">${p.p.toLocaleString("fr-FR")}</span><span class="s${p.stock<=3?" bas":""}">${p.stock<=0?"Rupture":"Stock : "+p.stock}</span>${q?`<span class="q">${q}</span>`:""}</button>`}).join("")}</div>`;
   const f=fidelite(ctel), n=telNet(ctel).length===8;
@@ -271,11 +280,11 @@ function vCaisse(){
 }
 
 function rPanier(){
-  const t=totalPanier(), ok=panier.length&&coif;
+  const t=totalPanier(), manque=panier.some(i=>i.libre&&!(i.p>0)), ok=panier.length&&coif&&!manque;
   document.getElementById("panier").innerHTML=`<div class="in">
-    <div class="lignes">${panier.length?panier.map((i,x)=>`${i.q>1?i.q+"× ":""}${esc(i.n)}<button data-moins="${x}" aria-label="Retirer">−</button>`).join(" · "):"Ticket vide"}${rdvLie?" · <b>RDV</b>":""}</div>
-    <div class="row"><div class="chips">${PAIES.map(p=>`<button class="chip" data-paie="${p}" aria-pressed="${p===paie}">${p}</button>`).join("")}</div><span class="total num">${F(t)}</span></div>
-    <div class="row">${panier.length?`<button class="sec" data-vider>Vider</button>`:""}<button class="go" data-encaisser ${ok?"":"disabled"}>${panier.length&&!coif?"Choisir le coiffeur":"Encaisser"}</button></div></div>`;
+    <div class="lignes">${panier.length?panier.map((i,x)=>`${i.q>1?i.q+"× ":""}${esc(i.n)}${i.libre?` <input class="libre" id="libre${x}" data-libre="${x}" type="number" inputmode="numeric" placeholder="Prix F" value="${i.p||""}" aria-label="Prix de ${esc(i.n)}">`:""}<button data-moins="${x}" aria-label="Retirer">−</button>`).join(" · "):"Ticket vide"}${rdvLie?" · <b>RDV</b>":""}</div>
+    <div class="row"><div class="chips">${PAIES.map(p=>`<button class="chip" data-paie="${p}" aria-pressed="${p===paie}">${p}</button>`).join("")}</div><span class="total num" id="totalP">${F(t)}</span></div>
+    <div class="row">${panier.length?`<button class="sec" data-vider>Vider</button>`:""}<button class="go" id="goBtn" data-encaisser ${ok?"":"disabled"}>${panier.length&&!coif?"Choisir le coiffeur":manque?"Indiquer le prix":"Encaisser"}</button></div></div>`;
 }
 
 function vRdv(){
@@ -323,7 +332,7 @@ function vGerant(){
     h+=`<h2>Ce que chaque coiffeur a rapporté</h2><p class="note">Calcul sur les prestations seulement (les produits restent au salon).</p>`;
     h+=conf.coiffeurs.map(c=>{const v=s.parC[c.id]||{ca:0,n:0},part=Math.round(v.ca*c.pct/100);return`<div class="ligneb"><span><b>${esc(c.n)}</b></span><span class="num">${F(v.ca)}</span><small>${v.n} client${v.n>1?"s":""} · part coiffeur ${c.pct} % = <b>${F(part)}</b> · part salon ${F(v.ca-part)}</small><span class="t"><i style="width:${s.serv?v.ca/s.serv*100:0}%"></i></span></div>`}).join("");
     // semaine
-    const sem={};for(let i=0;i<7;i++){const d=new Date(Date.now()-i*864e5);const j=i===0?jour:lire("bbs:j:"+cleJ(d),{ventes:[],dep:[]});const st=stats(j);Object.entries(st.parC).forEach(([k,v])=>sem[k]=(sem[k]||0)+v.ca)}
+    const sem={};for(let i=0;i<7;i++){const d=new Date(Date.now()-i*864e5);const j=i===0?jour:lire("bbs2:j:"+cleJ(d),{ventes:[],dep:[]});const st=stats(j);Object.entries(st.parC).forEach(([k,v])=>sem[k]=(sem[k]||0)+v.ca)}
     h+=`<h2>Sur 7 jours</h2>`+conf.coiffeurs.map(c=>`<div class="ligneb"><span>${esc(c.n)}</span><span class="num">${F(sem[c.id])}</span><small>Part coiffeur : ${F(Math.round((sem[c.id]||0)*c.pct/100))}</small></div>`).join("");
   }
   if(onglet==="dep"){
@@ -341,14 +350,14 @@ function vGerant(){
     h+=`<h2>Nouveau produit</h2><div class="form"><input id="npN" class="full" placeholder="Nom du produit"><input id="npP" type="number" inputmode="numeric" placeholder="Prix F"><input id="npS" type="number" inputmode="numeric" placeholder="Quantité"><button class="btn full" data-addprod>Ajouter</button></div>`;
   }
   if(onglet==="histo"){
-    const js=[];for(let i=6;i>=0;i--){const d=new Date(Date.now()-i*864e5);const j=i===0?jour:lire("bbs:j:"+cleJ(d),{ventes:[],dep:[]});js.push({d,s:stats(j),auj:i===0})}
+    const js=[];for(let i=6;i>=0;i--){const d=new Date(Date.now()-i*864e5);const j=i===0?jour:lire("bbs2:j:"+cleJ(d),{ventes:[],dep:[]});js.push({d,s:stats(j),auj:i===0})}
     const mx=Math.max(1,...js.map(j=>j.s.ca)),tot=js.reduce((a,j)=>a+j.s.ca,0),cl=js.reduce((a,j)=>a+j.s.n,0);
     h+=`<div class="kpis"><div class="kpi"><div class="l">Recette 7 jours</div><div class="v num">${F(tot)}</div></div><div class="kpi"><div class="l">Clients 7 jours</div><div class="v num">${cl}</div></div></div>`;
     h+=`<div class="histo">${js.map(j=>`<div><em class="num">${j.s.ca?Math.round(j.s.ca/1000)+"k":""}</em><i class="${j.auj?"auj":""}" style="height:${j.s.ca/mx*100}%"></i><span>${j.d.toLocaleDateString("fr-FR",{weekday:"short"}).replace(".","")}</span></div>`).join("")}</div>`;
   }
   if(onglet==="reglages"){
     h+=`<h2>Coiffeurs</h2><div class="form">`+conf.coiffeurs.map((c,i)=>`<input id="cn${i}" value="${esc(c.n)}" aria-label="Nom coiffeur ${i+1}"><select id="cp${i}" aria-label="Part coiffeur ${i+1}">${[0,30,40,50,60,70].map(p=>`<option value="${p}" ${p===c.pct?"selected":""}>${p?p+" % pour lui":"Salaire fixe"}</option>`).join("")}</select>`).join("")+`<button class="btn full" data-savecoif>Enregistrer</button></div>`;
-    h+=`<h2>Prix des prestations</h2><div class="form">`+conf.services.map((s,i)=>`<input id="sn${i}" value="${esc(s.n)}" aria-label="Prestation ${i+1}"><input id="sp${i}" type="number" inputmode="numeric" value="${s.p}" aria-label="Prix prestation ${i+1}">`).join("")+`<button class="btn full" data-savesvc>Enregistrer</button></div>`;
+    h+=`<h2>Prix des prestations</h2><p class="note">Mettre 0 pour un prix à confirmer au salon : il sera demandé à la caisse.</p><div class="form">`+conf.services.map((s,i)=>`<input id="sn${i}" value="${esc(s.n)}" aria-label="Prestation ${i+1}"><input id="sp${i}" type="number" inputmode="numeric" value="${s.p}" aria-label="Prix prestation ${i+1}">`).join("")+`<button class="btn full" data-savesvc>Enregistrer</button></div>`;
     h+=`<h2>Fidélité</h2><div class="form"><label class="sous" for="fidN">Visite offerte tous les</label><select id="fidN">${[5,6,8,10,12].map(n=>`<option ${n===conf.fid?"selected":""}>${n}</option>`).join("")}</select><button class="btn full" data-savefid>Enregistrer</button></div>`;
     h+=`<h2>Code gérant</h2><div class="form"><input id="nc" class="full" inputmode="numeric" placeholder="Nouveau code (4 à 8 chiffres)"><button class="btn full" data-code>Changer le code</button></div>`;
     h+=`<p class="note">Les données restent dans le navigateur de ce téléphone. Utilisez toujours le même appareil au salon.</p>`;
@@ -371,6 +380,9 @@ function copier(txt,zoneId){const sel=()=>{const el=document.getElementById(zone
 document.addEventListener("input",e=>{
   if(e.target.id==="ctel"){ctel=e.target.value;const c=clients[telNet(ctel)];if(c&&!cnom){cnom=c.nom||"";}offrir=false;const pos=e.target.selectionStart;render();const el=document.getElementById("ctel");el.focus();el.setSelectionRange(pos,pos)}
   if(e.target.id==="cnom")cnom=e.target.value;
+  if(e.target.dataset&&e.target.dataset.libre!==undefined){const i=panier[+e.target.dataset.libre];if(i)i.p=Math.max(0,+e.target.value||0);
+    document.getElementById("totalP").textContent=F(totalPanier());const manque=panier.some(x=>x.libre&&!(x.p>0)),g=document.getElementById("goBtn");
+    g.disabled=!(panier.length&&coif&&!manque);g.textContent=panier.length&&!coif?"Choisir le coiffeur":manque?"Indiquer le prix":"Encaisser"}
   if(e.target.id==="cherche"){recherche=e.target.value;render();const el=document.getElementById("cherche");el.focus();el.setSelectionRange(recherche.length,recherche.length)}
 });
 document.addEventListener("change",e=>{if(e.target.id==="offrir"){offrir=e.target.checked;rPanier()}});
@@ -382,7 +394,7 @@ document.addEventListener("click",e=>{
   if("reset0" in a){confReset=false;return render()}
   if("reset2" in a){const garde={...conf,demo:false,coiffeurs:conf.coiffeurs,services:conf.services,produits:conf.produits};effacerTout();conf=garde;saveConf();jour={ventes:[],dep:[],fond:null,reel:null};rdv=[];clients={};saveJ();saveR();saveC();confReset=false;panier=[];toast("Prêt pour le premier vrai client");return render()}
   if(a.coif){coif=a.coif;return render()}
-  if(a.add){const[k,id]=a.add.split(":");const o=k==="s"?svc(id):conf.produits.find(p=>p.id===id);const ex=panier.find(i=>i.k===k&&i.id===id);if(ex)ex.q++;else panier.push({k,id,n:o.n,p:o.p,q:1});confAnnul=null;return render()}
+  if(a.add){const[k,id]=a.add.split(":");const o=k==="s"?svc(id):conf.produits.find(p=>p.id===id);const libre=k==="s"&&!(o.p>0);const ex=panier.find(i=>i.k===k&&i.id===id);if(ex)ex.q++;else panier.push({k,id,n:o.n,p:o.p,q:1,libre});confAnnul=null;return render()}
   if(a.moins!==undefined){const i=panier[+a.moins];i.q--;if(!i.q)panier.splice(+a.moins,1);if(!panier.some(x=>x.k==="s"))offrir=false;return render()}
   if(a.paie){paie=a.paie;return rPanier()}
   if("vider" in a){panier=[];offrir=false;rdvLie=null;return render()}
@@ -412,7 +424,7 @@ document.addEventListener("click",e=>{
   if(a.stock){const[i,d]=a.stock.split(":").map(Number);conf.produits[i].stock=Math.max(0,conf.produits[i].stock+d);saveConf();return render()}
   if("addprod" in a){const n=document.getElementById("npN").value.trim(),p=+document.getElementById("npP").value,s=+document.getElementById("npS").value||0;if(!n||!(p>0)){toast("Nom et prix obligatoires");return}conf.produits.push({id:uid(),n,p,stock:s});saveConf();toast("Produit ajouté");return render()}
   if("savecoif" in a){conf.coiffeurs.forEach((c,i)=>{c.n=document.getElementById("cn"+i).value.trim()||c.n;c.pct=+document.getElementById("cp"+i).value});saveConf();toast("Coiffeurs enregistrés");return render()}
-  if("savesvc" in a){conf.services.forEach((s,i)=>{s.n=document.getElementById("sn"+i).value.trim()||s.n;const p=+document.getElementById("sp"+i).value;if(p>0)s.p=p});saveConf();toast("Prix enregistrés");return render()}
+  if("savesvc" in a){conf.services.forEach((s,i)=>{s.n=document.getElementById("sn"+i).value.trim()||s.n;const p=+document.getElementById("sp"+i).value;if(p>=0)s.p=p});saveConf();toast("Prix enregistrés");return render()}
   if("savefid" in a){conf.fid=+document.getElementById("fidN").value;saveConf();toast("Fidélité mise à jour");return render()}
   if("code" in a){const v=document.getElementById("nc").value.trim();if(!/^\d{4,8}$/.test(v)){toast("4 à 8 chiffres");return}conf.code=v;saveConf();toast("Code changé");return render()}
   if(a.copier){copier(bilanTexte(),a.copier);return}
