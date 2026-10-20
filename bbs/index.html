@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#121318">
 <meta property="og:title" content="Balila Barber Street · Application de gestion">
-<meta property="og:description" content="Caisse, rendez-vous, fidélité et bilan du salon. Une application SIBYX.">
+<meta property="og:description" content="Caisse, rendez-vous, fidélité, stock et bilan du salon. Une application SIBYX.">
 <meta name="description" content="Application de gestion du salon Balila Barber Street, développée par SIBYX Intelligence Digitale.">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Gestion Balila Barber Street</title>
@@ -133,6 +133,8 @@ h2 small{font-family:var(--body);font-size:12px;font-weight:500;color:var(--encr
 .note{font-size:12px;color:var(--encre-3);margin-top:8px}
 pre.wa{white-space:pre-wrap;background:var(--surface);border:1px solid var(--ligne);border-radius:8px;padding:12px;font-size:12px;font-family:var(--body);user-select:all}
 .toast{position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--encre);color:var(--fond);font-weight:700;padding:10px 18px;border-radius:999px;z-index:9;font-size:14px;max-width:90vw;text-align:center}
+.alerte{margin-top:12px;border-radius:10px;padding:10px 12px;background:rgba(180,83,9,.12);color:var(--alerte);font-size:13px;display:flex;flex-direction:column;gap:2px}
+.alerte span{color:var(--encre-2)}
 .credit{margin-top:36px;padding-top:16px;border-top:1px solid var(--ligne);text-align:center;font-size:12px;color:var(--encre-3);display:flex;flex-direction:column;gap:4px;align-items:center}
 .credit p{margin:0}
 .sx{display:flex;align-items:baseline;gap:6px;color:var(--encre-2);font-size:12px}
@@ -166,7 +168,7 @@ pre.wa{white-space:pre-wrap;background:var(--surface);border:1px solid var(--lig
 const mem={};
 function lire(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return k in mem?mem[k]:d}}
 function ecrire(k,v){mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-function effacerTout(){try{Object.keys(localStorage).filter(k=>k.startsWith("bbs2:")).forEach(k=>localStorage.removeItem(k))}catch(e){}Object.keys(mem).forEach(k=>delete mem[k])}
+function effacerTout(){try{Object.keys(localStorage).filter(k=>k.startsWith("bbs3:")).forEach(k=>localStorage.removeItem(k))}catch(e){}Object.keys(mem).forEach(k=>delete mem[k])}
 
 const cleJ=(d=new Date())=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -183,19 +185,32 @@ const CONF_DEFAUT={code:"1234",fid:10,demo:true,
   // Tarifs réels relevés sur balila-barber.netlify.app (octobre 2026). p:0 = prix à confirmer au salon, saisi à la caisse.
   services:[
     {id:"c_simple",cat:"Classiques",n:"Coupe simple",p:1000},{id:"c_zero",cat:"Classiques",n:"Boule à zéro",p:1000},{id:"c_enfant",cat:"Classiques",n:"Coupe simple enfant",p:500},
-    {id:"d_classique",cat:"Dégradés",n:"Dégradé classique",p:2000},{id:"d_haut",cat:"Dégradés",n:"Dégradé haut",p:2000},{id:"d_th",cat:"Dégradés",n:"Taper High",p:2000},{id:"d_tm",cat:"Dégradés",n:"Taper Mid",p:2000},{id:"d_tl",cat:"Dégradés",n:"Taper Low",p:2000},{id:"d_drop",cat:"Dégradés",n:"Drop Fade",p:2000},{id:"d_mohawk",cat:"Dégradés",n:"Mohawk Fade",p:2000},{id:"d_waves",cat:"Dégradés",n:"Waves + Fade",p:2000},{id:"d_locs",cat:"Dégradés",n:"Locs + Fade",p:10000},
+    {id:"d_classique",cat:"Dégradés",n:"Dégradé classique",p:2000},{id:"d_haut",cat:"Dégradés",n:"Dégradé haut",p:2000},{id:"d_th",cat:"Dégradés",n:"Taper High",p:2000},{id:"d_tm",cat:"Dégradés",n:"Taper Mid",p:2000},{id:"d_tl",cat:"Dégradés",n:"Taper Low",p:2000},{id:"d_drop",cat:"Dégradés",n:"Drop Fade",p:2000},{id:"d_mohawk",cat:"Dégradés",n:"Mohawk Fade",p:2000},{id:"d_waves",cat:"Dégradés",n:"Waves + Fade",p:2000},{id:"d_locs",cat:"Dégradés",n:"Locs + Fade",p:10000},{id:"d_ti",cat:"Dégradés",n:"Dégradé T.I",p:1000},
     {id:"k_blanc",cat:"Couleur & design",n:"Dégradé blanc",p:5000},{id:"k_rouge",cat:"Couleur & design",n:"Dégradé rouge",p:5000},{id:"k_orange",cat:"Couleur & design",n:"Dégradé orange",p:5000},{id:"k_design",cat:"Couleur & design",n:"Hair Design",p:2000},
     {id:"a_curly",cat:"Afro & bouclé",n:"Curly",p:8000},
-    {id:"t_box",cat:"Tresses & locks",n:"Box Braids",p:10000},{id:"t_corn",cat:"Tresses & locks",n:"Cornrows",p:10000},{id:"t_stitch",cat:"Tresses & locks",n:"Stitch Braids",p:10000},{id:"t_starter",cat:"Tresses & locks",n:"Starter Locs",p:10000},{id:"t_barrel",cat:"Tresses & locks",n:"Barrel Twist",p:10000},{id:"t_two",cat:"Tresses & locks",n:"Two-Strand Twist",p:10000},{id:"t_faux",cat:"Tresses & locks",n:"Faux Locks",p:0}],
-  produits:[{id:"p1",n:"Cire",p:3000,stock:12},{id:"p2",n:"Huile barbe",p:4000,stock:3},{id:"p3",n:"Après-rasage",p:2500,stock:8}]};
+    {id:"t_box",cat:"Tresses & locks",n:"Box Braids",p:10000},{id:"t_corn",cat:"Tresses & locks",n:"Cornrows",p:10000},{id:"t_stitch",cat:"Tresses & locks",n:"Stitch Braids",p:10000},{id:"t_starter",cat:"Tresses & locks",n:"Starter Locs",p:10000},{id:"t_barrel",cat:"Tresses & locks",n:"Barrel Twist",p:10000},{id:"t_two",cat:"Tresses & locks",n:"Two-Strand Twist",p:10000},{id:"t_nattes",cat:"Tresses & locks",n:"Nattes collées",p:10000},{id:"t_fulani",cat:"Tresses & locks",n:"Fulani Braids",p:10000},{id:"t_faux",cat:"Tresses & locks",n:"Faux Locks",p:0},
+    {id:"o_soins",cat:"Options",n:"Soins esthétiques",p:1000}],
+  // Stock réel du salon (note du 20/10/2026). La note donne des prix pour le LOT : ici convertis à l'unité (p = vente, achat = coût).
+  // stock:null = quantité inconnue (« à compter »). seuil = alerte quand il en reste ce nombre ou moins.
+  produits:[
+    {id:"sitation",n:"Sitation",p:1000,achat:107,stock:7,seuil:2},
+    {id:"skala",n:"Skala",p:1000,achat:167,stock:3,seuil:1},
+    {id:"blackhair",n:"Black hair",p:525,achat:100,stock:10,seuil:3},
+    {id:"peigne",n:"Peigne",p:250,achat:100,stock:2,seuil:1},
+    {id:"gommage",n:"Gommage",p:1000,achat:625,stock:2,seuil:1},
+    {id:"dorco",n:"Lames Dorco",p:1500,achat:1150,stock:8,seuil:2},
+    {id:"brosse",n:"Brosse à cheveux",p:5000,achat:3000,stock:1,seuil:0},
+    {id:"olive",n:"Olive oil",p:5000,achat:2000,stock:null,seuil:1},
+    {id:"gel",n:"Gel",p:1000,achat:750,stock:2,seuil:1},
+    {id:"crayon",n:"Crayon",p:250,achat:16,stock:8,seuil:2}]};
 
-let conf=lire("bbs2:conf",null);
-if(!conf){conf=structuredClone(CONF_DEFAUT);ecrire("bbs2:conf",conf);semerDemo();}
-function saveConf(){ecrire("bbs2:conf",conf)}
+let conf=lire("bbs3:conf",null);
+if(!conf){conf=structuredClone(CONF_DEFAUT);ecrire("bbs3:conf",conf);semerDemo();}
+function saveConf(){ecrire("bbs3:conf",conf)}
 
-let cle=cleJ(), jour=lire("bbs2:j:"+cle,{ventes:[],dep:[],fond:null,reel:null});
-let rdv=lire("bbs2:rdv",[]), clients=lire("bbs2:cli",{});
-const saveJ=()=>ecrire("bbs2:j:"+cle,jour), saveR=()=>ecrire("bbs2:rdv",rdv), saveC=()=>ecrire("bbs2:cli",clients);
+let cle=cleJ(), jour=lire("bbs3:j:"+cle,{ventes:[],dep:[],fond:null,reel:null});
+let rdv=lire("bbs3:rdv",[]), clients=lire("bbs3:cli",{});
+const saveJ=()=>ecrire("bbs3:j:"+cle,jour), saveR=()=>ecrire("bbs3:rdv",rdv), saveC=()=>ecrire("bbs3:cli",clients);
 
 function semerDemo(){
   const now=new Date(), at=(h,m)=>{const d=new Date(now);d.setHours(h,m,0,0);return d.getTime()};
@@ -203,21 +218,21 @@ function semerDemo(){
   const it=(o,k)=>({k,id:o.id,n:o.n,p:o.p,q:1});
   const v=[
     {t:at(9,40),coif:"c1",items:[it(s("d_tm"),"s")],pay:"Espèces",tel:"76000001",nom:"Moussa (exemple)"},
-    {t:at(10,15),coif:"c2",items:[it(s("t_box"),"s"),it(p("p1"),"p")],pay:"Orange Money",tel:"66000002",nom:"Ibrahim (exemple)"},
+    {t:at(10,15),coif:"c2",items:[it(s("t_box"),"s"),{...it(p("gel"),"p"),c:750}],pay:"Orange Money",tel:"66000002",nom:"Ibrahim (exemple)"},
     {t:at(11,5),coif:"c1",items:[it(s("c_simple"),"s")],pay:"Wave",tel:"",nom:""},
     {t:at(11,50),coif:"c2",items:[it(s("c_enfant"),"s")],pay:"Espèces",tel:"",nom:""}];
   v.forEach(x=>x.total=x.items.reduce((a,i)=>a+i.p*i.q,0));
-  ecrire("bbs2:j:"+cleJ(),{ventes:v,dep:[{t:at(9,0),cat:"Électricité",m:2000,note:"Recharge compteur (exemple)",esp:true}],fond:5000,reel:null});
+  ecrire("bbs3:j:"+cleJ(),{ventes:v,dep:[{t:at(9,0),cat:"Électricité",m:2000,note:"Recharge compteur (exemple)",esp:true}],fond:5000,reel:null});
   const d=cleJ();
-  ecrire("bbs2:rdv",[
+  ecrire("bbs3:rdv",[
     {id:uid(),date:d,h:"14:00",nom:"Seydou (exemple)",tel:"79000003",sid:"d_drop",coif:"c1",st:"prevu"},
     {id:uid(),date:d,h:"15:30",nom:"Adama (exemple)",tel:"76000001",sid:"t_corn",coif:"c2",st:"prevu"},
     {id:uid(),date:d,h:"17:00",nom:"Bakary (exemple)",tel:"65000004",sid:"k_blanc",coif:"c1",st:"prevu"}]);
-  ecrire("bbs2:cli",{"76000001":{nom:"Moussa (exemple)",v:9,der:at(9,40)},"66000002":{nom:"Ibrahim (exemple)",v:4,der:at(10,15)}});
+  ecrire("bbs3:cli",{"76000001":{nom:"Moussa (exemple)",v:9,der:at(9,40)},"66000002":{nom:"Ibrahim (exemple)",v:4,der:at(10,15)}});
   // historique de la semaine pour la démo
   [1,2,3,4,5,6].forEach(i=>{const dd=new Date(now.getTime()-i*864e5);const n=[6,9,4,11,7,8][i-1];
     const vv=Array.from({length:n},(_,j)=>{const pay=CONF_DEFAUT.services.filter(x=>x.p>0&&x.p<=5000);const sv=pay[(i*3+j)%pay.length];return{t:dd.getTime(),coif:j%2?"c2":"c1",items:[{k:"s",id:sv.id,n:sv.n,p:sv.p,q:1}],total:sv.p,pay:PAIES[j%3]}});
-    ecrire("bbs2:j:"+cleJ(dd),{ventes:vv,dep:[],fond:null,reel:null})});
+    ecrire("bbs3:j:"+cleJ(dd),{ventes:vv,dep:[],fond:null,reel:null})});
   // services sur 9 positions pour l'historique
 
 }
@@ -235,12 +250,13 @@ function fidelite(tel){const c=clients[telNet(tel)];const v=c?c.v:0;return{v,c,p
 
 function stats(j){
   const v=j.ventes.filter(x=>!x.annule), ca=v.reduce((a,x)=>a+x.total,0), dep=j.dep.reduce((a,x)=>a+x.m,0);
-  const pay={}, parC={}; let serv=0, prod=0;
+  const pay={}, parC={}; let serv=0, prod=0, cout=0;
   v.forEach(x=>{pay[x.pay]=(pay[x.pay]||0)+x.total;
     const sv=x.items.filter(i=>i.k==="s").reduce((a,i)=>a+i.p*i.q,0)-(x.remise||0), pr=x.items.filter(i=>i.k==="p").reduce((a,i)=>a+i.p*i.q,0);
+    cout+=x.items.filter(i=>i.k==="p").reduce((a,i)=>a+(i.c||0)*i.q,0);
     serv+=sv;prod+=pr;parC[x.coif]=parC[x.coif]||{ca:0,n:0};parC[x.coif].ca+=sv;parC[x.coif].n++});
   const esp=pay["Espèces"]||0;
-  return{ca,dep,net:ca-dep,n:v.length,serv,prod,pay,parC,attendu:j.fond==null?null:j.fond+esp-j.dep.filter(d=>d.esp!==false).reduce((a,d)=>a+d.m,0)};
+  return{ca,dep,net:ca-dep,n:v.length,serv,prod,margeP:prod-cout,pay,parC,attendu:j.fond==null?null:j.fond+esp-j.dep.filter(d=>d.esp!==false).reduce((a,d)=>a+d.m,0)};
 }
 
 // ———— Rendu ————
@@ -249,7 +265,7 @@ const ICON={caisse:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height
   clients:'<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .6 3 2.8 3 6"/></svg>',
   gerant:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>'};
 function render(){
-  if(cleJ()!==cle){cle=cleJ();jour=lire("bbs2:j:"+cle,{ventes:[],dep:[],fond:null,reel:null})}
+  if(cleJ()!==cle){cle=cleJ();jour=lire("bbs3:j:"+cle,{ventes:[],dep:[],fond:null,reel:null})}
   document.getElementById("date").textContent=new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
   document.getElementById("bandeau").innerHTML=conf.demo?`<div class="demo"><span>Démo SIBYX : vrais tarifs du salon, clients et ventes d'exemple.</span>${confReset?`<button data-reset2>Oui, tout effacer</button><button data-reset0>Annuler</button>`:`<button data-reset>Effacer et démarrer pour de vrai</button>`}</div>`:"";
   const L={caisse:"Caisse",rdv:"Rendez-vous",clients:"Clients",gerant:"Gérant"};
@@ -261,13 +277,17 @@ function render(){
   if(vue==="caisse")rPanier();
 }
 
+const estBas=p=>p.stock!=null&&p.stock<=(p.seuil??2);
+const aRacheter=()=>conf.produits.filter(estBas);
+function alerteStock(){const l=aRacheter();if(!l.length)return"";
+  return`<div class="alerte" role="status"><b>Stock presque épuisé</b><span>${l.map(p=>`${esc(p.n)} (${p.stock})`).join(" · ")}</span></div>`}
 function vCaisse(){
-  let h=`<div class="lbl">Coiffeur</div><div class="chips">${conf.coiffeurs.map(c=>`<button class="chip" data-coif="${c.id}" aria-pressed="${c.id===coif}">${esc(c.n)}</button>`).join("")}</div>`;
+  let h=alerteStock()+`<div class="lbl">Coiffeur</div><div class="chips">${conf.coiffeurs.map(c=>`<button class="chip" data-coif="${c.id}" aria-pressed="${c.id===coif}">${esc(c.n)}</button>`).join("")}</div>`;
   const cats=[...new Set(conf.services.map(s=>s.cat||"Autres"))];
   cats.forEach(c=>{h+=`<div class="lbl">${esc(c)}</div><div class="grille">${conf.services.filter(s=>(s.cat||"Autres")===c).map(s=>{const q=panier.filter(i=>i.k==="s"&&i.id===s.id).reduce((a,i)=>a+i.q,0);
     return`<button class="tuile" data-add="s:${s.id}"><span class="n">${esc(s.n)}</span><span class="p num">${s.p?s.p.toLocaleString("fr-FR"):`<span class="s">Prix à confirmer</span>`}</span>${q?`<span class="q">${q}</span>`:""}</button>`}).join("")}</div>`});
-  h+=`<div class="lbl">Produits</div><div class="grille">${conf.produits.map(p=>{const q=panier.filter(i=>i.k==="p"&&i.id===p.id).reduce((a,i)=>a+i.q,0);const rest=p.stock-q;
-    return`<button class="tuile" data-add="p:${p.id}" ${rest<=0?"disabled":""}><span class="n">${esc(p.n)}</span><span class="p num">${p.p.toLocaleString("fr-FR")}</span><span class="s${p.stock<=3?" bas":""}">${p.stock<=0?"Rupture":"Stock : "+p.stock}</span>${q?`<span class="q">${q}</span>`:""}</button>`}).join("")}</div>`;
+  h+=`<div class="lbl">Produits</div><div class="grille">${conf.produits.map(p=>{const q=panier.filter(i=>i.k==="p"&&i.id===p.id).reduce((a,i)=>a+i.q,0);const inconnu=p.stock==null,rest=inconnu?1:p.stock-q,b=estBas(p);
+    return`<button class="tuile" data-add="p:${p.id}" ${rest<=0?"disabled":""}><span class="n">${esc(p.n)}</span><span class="p num">${p.p.toLocaleString("fr-FR")}</span><span class="s${b?" bas":""}">${inconnu?"Stock à compter":p.stock<=0?"Rupture":b?"Plus que "+p.stock:"Stock : "+p.stock}</span>${q?`<span class="q">${q}</span>`:""}</button>`}).join("")}</div>`;
   const f=fidelite(ctel), n=telNet(ctel).length===8;
   h+=`<div class="lbl">Client (facultatif, pour la fidélité)</div><div class="client"><input id="ctel" inputmode="tel" placeholder="Téléphone" value="${esc(ctel)}"><input id="cnom" placeholder="Prénom" value="${esc(cnom)}">`;
   if(n){h+=`<div class="fid"><span class="tampons">${Array.from({length:conf.fid},(_,i)=>`<i class="${i<f.v%conf.fid?"on":""}"></i>`).join("")}</span><span>${f.c?f.v+" visite"+(f.v>1?"s":""):"Nouveau client"}</span></div>`;
@@ -324,7 +344,8 @@ function vGerant(){
   if(onglet==="bilan"){
     h+=`<div class="kpis"><div class="kpi fort"><div class="l">Recette du jour</div><div class="v num">${F(s.ca)}</div></div>
       <div class="kpi"><div class="l">Clients</div><div class="v num">${s.n}</div></div><div class="kpi"><div class="l">Dépenses</div><div class="v num">${F(s.dep)}</div></div>
-      <div class="kpi"><div class="l">Prestations</div><div class="v num">${F(s.serv)}</div></div><div class="kpi"><div class="l">Produits</div><div class="v num">${F(s.prod)}</div></div></div>`;
+      <div class="kpi"><div class="l">Prestations</div><div class="v num">${F(s.serv)}</div></div><div class="kpi"><div class="l">Produits vendus</div><div class="v num">${F(s.prod)}</div></div>
+      <div class="kpi" style="grid-column:1/-1"><div class="l">Bénéfice sur les produits</div><div class="v num" style="color:var(--ok)">${F(s.margeP)}</div></div></div>`+alerteStock();
     h+=`<h2>Par paiement</h2>`+PAIES.map(p=>`<div class="ligneb"><span>${p}</span><span class="num">${F(s.pay[p])}</span><span class="t"><i style="width:${s.ca?(s.pay[p]||0)/s.ca*100:0}%"></i></span></div>`).join("");
     h+=`<h2>Bilan WhatsApp</h2><pre class="wa" id="wa">${esc(bilanTexte())}</pre><button class="btn" data-copier="wa" style="width:100%;margin-top:8px">Copier le bilan</button>`;
   }
@@ -332,7 +353,7 @@ function vGerant(){
     h+=`<h2>Ce que chaque coiffeur a rapporté</h2><p class="note">Calcul sur les prestations seulement (les produits restent au salon).</p>`;
     h+=conf.coiffeurs.map(c=>{const v=s.parC[c.id]||{ca:0,n:0},part=Math.round(v.ca*c.pct/100);return`<div class="ligneb"><span><b>${esc(c.n)}</b></span><span class="num">${F(v.ca)}</span><small>${v.n} client${v.n>1?"s":""} · part coiffeur ${c.pct} % = <b>${F(part)}</b> · part salon ${F(v.ca-part)}</small><span class="t"><i style="width:${s.serv?v.ca/s.serv*100:0}%"></i></span></div>`}).join("");
     // semaine
-    const sem={};for(let i=0;i<7;i++){const d=new Date(Date.now()-i*864e5);const j=i===0?jour:lire("bbs2:j:"+cleJ(d),{ventes:[],dep:[]});const st=stats(j);Object.entries(st.parC).forEach(([k,v])=>sem[k]=(sem[k]||0)+v.ca)}
+    const sem={};for(let i=0;i<7;i++){const d=new Date(Date.now()-i*864e5);const j=i===0?jour:lire("bbs3:j:"+cleJ(d),{ventes:[],dep:[]});const st=stats(j);Object.entries(st.parC).forEach(([k,v])=>sem[k]=(sem[k]||0)+v.ca)}
     h+=`<h2>Sur 7 jours</h2>`+conf.coiffeurs.map(c=>`<div class="ligneb"><span>${esc(c.n)}</span><span class="num">${F(sem[c.id])}</span><small>Part coiffeur : ${F(Math.round((sem[c.id]||0)*c.pct/100))}</small></div>`).join("");
   }
   if(onglet==="dep"){
@@ -346,11 +367,24 @@ function vGerant(){
     else h+=`<p class="note">Saisissez le fond du matin pour calculer l'attendu.</p>`;
   }
   if(onglet==="stock"){
-    h+=`<h2>Stock produits</h2><div class="liste">`+conf.produits.map((p,i)=>`<div class="li"><span class="d">${esc(p.n)}<small>${F(p.p)} l'unité · valeur ${F(p.p*p.stock)}</small></span><span class="m num" style="color:${p.stock<=3?"var(--alerte)":"inherit"}">${p.stock}</span><span class="acts"><button class="mini" data-stock="${i}:-1">−1</button><button class="mini" data-stock="${i}:1">+1</button><button class="mini fort" data-stock="${i}:10">+10</button></span></div>`).join("")+`</div><p class="note">Le stock baisse tout seul à chaque vente. En orange : 3 unités ou moins.</p>`;
-    h+=`<h2>Nouveau produit</h2><div class="form"><input id="npN" class="full" placeholder="Nom du produit"><input id="npP" type="number" inputmode="numeric" placeholder="Prix F"><input id="npS" type="number" inputmode="numeric" placeholder="Quantité"><button class="btn full" data-addprod>Ajouter</button></div>`;
+    const connus=conf.produits.filter(p=>p.stock!=null), vAchat=connus.reduce((a,p)=>a+(p.achat||0)*p.stock,0), vVente=connus.reduce((a,p)=>a+p.p*p.stock,0), bas=aRacheter();
+    h+=`<div class="kpis"><div class="kpi"><div class="l">Argent dans le stock</div><div class="v num">${F(vAchat)}</div></div><div class="kpi"><div class="l">Si tout est vendu</div><div class="v num">${F(vVente)}</div></div>
+      <div class="kpi" style="grid-column:1/-1"><div class="l">À racheter</div><div class="v num" style="color:${bas.length?"var(--alerte)":"var(--ok)"}">${bas.length?bas.length+" produit"+(bas.length>1?"s":""):"Rien pour l'instant"}</div></div></div>`;
+    h+=`<h2>J'ai acheté</h2><div class="form">
+      <select id="aP" class="full" aria-label="Produit acheté">${conf.produits.map(p=>`<option value="${p.id}">${esc(p.n)}</option>`).join("")}</select>
+      <input id="aQ" type="number" min="1" inputmode="numeric" placeholder="Quantité" aria-label="Quantité achetée"><input id="aM" type="number" min="0" inputmode="numeric" placeholder="Prix payé (lot)" aria-label="Prix payé pour le lot">
+      <label class="full sous" style="display:flex;gap:8px;align-items:center"><input id="aEsp" type="checkbox" checked style="width:auto"> Payé avec l'argent de la caisse</label>
+      <button class="btn full" data-achat>Ajouter au stock</button></div>
+      <p class="note">Le stock augmente, le prix d'achat est mis à jour, et la dépense est notée dans la journée.</p>`;
+    h+=`<h2>Produits en stock</h2><div class="liste">`+conf.produits.map((p,i)=>{const b=estBas(p),m=p.p-(p.achat||0);return`<div class="li"><span class="d">${esc(p.n)} ${b?`<span class="pill absent">À racheter</span>`:""}<small>Vente ${F(p.p)} · achat ${F(p.achat||0)} · gain ${F(m)} l'unité</small><small>Alerte quand il en reste ${p.seuil??2} ou moins</small></span>
+      <span class="m num" style="color:${b?"var(--alerte)":"inherit"}">${p.stock==null?"?":p.stock}</span><span class="acts"><button class="mini" data-stock="${i}:-1" aria-label="Retirer un ${esc(p.n)}">−1</button><button class="mini" data-stock="${i}:1" aria-label="Ajouter un ${esc(p.n)}">+1</button><button class="mini" data-seuil="${i}">Alerte ${p.seuil??2}</button></span></div>`}).join("")+`</div>
+      <p class="note">Le stock baisse tout seul à chaque vente. « ? » = quantité à compter : utilisez +1 pour la saisir. Touchez « Alerte » pour changer le seuil.</p>`;
+    const ach=(conf.achats||[]).slice(-8).reverse();
+    h+=`<h2>Derniers achats</h2><div class="liste">`+(ach.length?ach.map(a=>`<div class="li"><span class="h num">${new Date(a.t).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</span><span class="d">${a.q} × ${esc(a.n)}</span><span class="m num">${F(a.m)}</span></div>`).join(""):`<div class="vide">Aucun achat noté pour l'instant.</div>`)+`</div>`;
+    h+=`<h2>Nouveau produit</h2><div class="form"><input id="npN" class="full" placeholder="Nom du produit"><input id="npS" type="number" inputmode="numeric" placeholder="Quantité"><input id="npA" type="number" inputmode="numeric" placeholder="Prix d'achat (lot)"><input id="npP" class="full" type="number" inputmode="numeric" placeholder="Prix de vente à l'unité"><button class="btn full" data-addprod>Ajouter</button></div>`;
   }
   if(onglet==="histo"){
-    const js=[];for(let i=6;i>=0;i--){const d=new Date(Date.now()-i*864e5);const j=i===0?jour:lire("bbs2:j:"+cleJ(d),{ventes:[],dep:[]});js.push({d,s:stats(j),auj:i===0})}
+    const js=[];for(let i=6;i>=0;i--){const d=new Date(Date.now()-i*864e5);const j=i===0?jour:lire("bbs3:j:"+cleJ(d),{ventes:[],dep:[]});js.push({d,s:stats(j),auj:i===0})}
     const mx=Math.max(1,...js.map(j=>j.s.ca)),tot=js.reduce((a,j)=>a+j.s.ca,0),cl=js.reduce((a,j)=>a+j.s.n,0);
     h+=`<div class="kpis"><div class="kpi"><div class="l">Recette 7 jours</div><div class="v num">${F(tot)}</div></div><div class="kpi"><div class="l">Clients 7 jours</div><div class="v num">${cl}</div></div></div>`;
     h+=`<div class="histo">${js.map(j=>`<div><em class="num">${j.s.ca?Math.round(j.s.ca/1000)+"k":""}</em><i class="${j.auj?"auj":""}" style="height:${j.s.ca/mx*100}%"></i><span>${j.d.toLocaleDateString("fr-FR",{weekday:"short"}).replace(".","")}</span></div>`).join("")}</div>`;
@@ -369,7 +403,9 @@ function bilanTexte(){
   const s=stats(jour);let t=`Balila Barber Street ·${new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}\n\nRecette : ${F(s.ca)} (${s.n} clients)\n• Prestations : ${F(s.serv)}\n• Produits : ${F(s.prod)}\n`;
   PAIES.forEach(p=>{if(s.pay[p])t+=`• ${p} : ${F(s.pay[p])}\n`});
   t+=`\nPar coiffeur :\n`;conf.coiffeurs.forEach(c=>{const v=s.parC[c.id];if(v)t+=`• ${c.n} : ${v.n} clients, ${F(v.ca)}\n`});
+  t+=`\nBénéfice sur les produits : ${F(s.margeP)}`;
   t+=`\nDépenses : ${F(s.dep)}\nReste : ${F(s.net)}`;
+  const bas=aRacheter();if(bas.length)t+=`\n\nÀ racheter : ${bas.map(p=>p.n+" ("+p.stock+")").join(", ")}`;
   if(s.attendu!=null&&jour.reel!=null){const e=jour.reel-s.attendu;t+=`\nCaisse : ${e===0?"juste":"écart "+(e>0?"+":"")+F(e)}`}
   return t+`\n\n— Bilan généré par l'application SIBYX`;
 }
@@ -394,18 +430,18 @@ document.addEventListener("click",e=>{
   if("reset0" in a){confReset=false;return render()}
   if("reset2" in a){const garde={...conf,demo:false,coiffeurs:conf.coiffeurs,services:conf.services,produits:conf.produits};effacerTout();conf=garde;saveConf();jour={ventes:[],dep:[],fond:null,reel:null};rdv=[];clients={};saveJ();saveR();saveC();confReset=false;panier=[];toast("Prêt pour le premier vrai client");return render()}
   if(a.coif){coif=a.coif;return render()}
-  if(a.add){const[k,id]=a.add.split(":");const o=k==="s"?svc(id):conf.produits.find(p=>p.id===id);const libre=k==="s"&&!(o.p>0);const ex=panier.find(i=>i.k===k&&i.id===id);if(ex)ex.q++;else panier.push({k,id,n:o.n,p:o.p,q:1,libre});confAnnul=null;return render()}
+  if(a.add){const[k,id]=a.add.split(":");const o=k==="s"?svc(id):conf.produits.find(p=>p.id===id);const libre=k==="s"&&!(o.p>0);const ex=panier.find(i=>i.k===k&&i.id===id);if(ex)ex.q++;else panier.push(k==="p"?{k,id,n:o.n,p:o.p,c:o.achat||0,q:1}:{k,id,n:o.n,p:o.p,q:1,libre});confAnnul=null;return render()}
   if(a.moins!==undefined){const i=panier[+a.moins];i.q--;if(!i.q)panier.splice(+a.moins,1);if(!panier.some(x=>x.k==="s"))offrir=false;return render()}
   if(a.paie){paie=a.paie;return rPanier()}
   if("vider" in a){panier=[];offrir=false;rdvLie=null;return render()}
   if("encaisser" in a){
     const tot=totalPanier(),remise=panier.reduce((x,i)=>x+i.p*i.q,0)-tot,tn=telNet(ctel);
     jour.ventes.push({t:Date.now(),coif,items:panier.map(i=>({...i})),total:tot,remise,pay:paie,tel:tn,nom:cnom.trim()});saveJ();
-    panier.filter(i=>i.k==="p").forEach(i=>{const p=conf.produits.find(x=>x.id===i.id);p.stock=Math.max(0,p.stock-i.q)});saveConf();
+    panier.filter(i=>i.k==="p").forEach(i=>{const p=conf.produits.find(x=>x.id===i.id);if(p&&p.stock!=null)p.stock=Math.max(0,p.stock-i.q)});saveConf();
     if(tn.length===8){const c=clients[tn]||{nom:"",v:0};c.v++;c.der=Date.now();if(cnom.trim())c.nom=cnom.trim();clients[tn]=c;saveC()}
     if(rdvLie){const r=rdv.find(x=>x.id===rdvLie);if(r)r.st="venu";saveR()}
     toast("Encaissé · "+F(tot)+(remise?" (fidélité)":""));panier=[];offrir=false;ctel="";cnom="";rdvLie=null;paie="Espèces";return render()}
-  if(a.annul){const t=+a.annul;if(confAnnul===t){const v=jour.ventes.find(x=>x.t===t);v.annule=true;v.items.filter(i=>i.k==="p").forEach(i=>{const p=conf.produits.find(x=>x.id===i.id);if(p)p.stock+=i.q});saveConf();if(v.tel&&clients[v.tel]){clients[v.tel].v=Math.max(0,clients[v.tel].v-1);saveC()}saveJ();confAnnul=null;toast("Passage annulé")}else confAnnul=t;return render()}
+  if(a.annul){const t=+a.annul;if(confAnnul===t){const v=jour.ventes.find(x=>x.t===t);v.annule=true;v.items.filter(i=>i.k==="p").forEach(i=>{const p=conf.produits.find(x=>x.id===i.id);if(p&&p.stock!=null)p.stock+=i.q});saveConf();if(v.tel&&clients[v.tel]){clients[v.tel].v=Math.max(0,clients[v.tel].v-1);saveC()}saveJ();confAnnul=null;toast("Passage annulé")}else confAnnul=t;return render()}
   if("addrdv" in a){const nom=document.getElementById("rNom").value.trim(),h=document.getElementById("rH").value,d=document.getElementById("rDate").value;if(!nom||!h||!d){toast("Prénom, date et heure obligatoires");return}
     rdv.push({id:uid(),date:d,h,nom,tel:document.getElementById("rTel").value.trim(),sid:document.getElementById("rS").value,coif:document.getElementById("rC").value,st:"prevu"});saveR();toast("Rendez-vous ajouté");return render()}
   if(a.venu){const r=rdv.find(x=>x.id===a.venu),s=svc(r.sid);panier=s?[{k:"s",id:s.id,n:s.n,p:s.p,q:1}]:[];coif=r.coif;ctel=r.tel||"";cnom=r.nom.replace(" (exemple)","");rdvLie=r.id;offrir=false;vue="caisse";return render()}
@@ -421,8 +457,15 @@ document.addEventListener("click",e=>{
   if("dep" in a){const m=+document.getElementById("dM").value;if(!(m>0)){toast("Indiquez un montant");return}jour.dep.push({t:Date.now(),cat:document.getElementById("dCat").value,m,note:document.getElementById("dN").value.trim(),esp:document.getElementById("dEsp").checked});saveJ();toast("Dépense enregistrée");return render()}
   if(a.deldep){jour.dep.splice(+a.deldep,1);saveJ();return render()}
   if("caisse" in a){const f=document.getElementById("fond").value,r=document.getElementById("reel").value;jour.fond=f===""?null:+f;jour.reel=r===""?null:+r;saveJ();toast("Caisse enregistrée");return render()}
-  if(a.stock){const[i,d]=a.stock.split(":").map(Number);conf.produits[i].stock=Math.max(0,conf.produits[i].stock+d);saveConf();return render()}
-  if("addprod" in a){const n=document.getElementById("npN").value.trim(),p=+document.getElementById("npP").value,s=+document.getElementById("npS").value||0;if(!n||!(p>0)){toast("Nom et prix obligatoires");return}conf.produits.push({id:uid(),n,p,stock:s});saveConf();toast("Produit ajouté");return render()}
+  if(a.stock){const[i,d]=a.stock.split(":").map(Number);const p=conf.produits[i];p.stock=Math.max(0,(p.stock??0)+d);saveConf();return render()}
+  if(a.seuil!==undefined){const p=conf.produits[+a.seuil];p.seuil=((p.seuil??2)+1)%6;saveConf();return render()}
+  if("achat" in a){const p=conf.produits.find(x=>x.id===document.getElementById("aP").value),q=+document.getElementById("aQ").value,m=+document.getElementById("aM").value,esp=document.getElementById("aEsp").checked;
+    if(!p||!(q>0)||!(m>=0)||document.getElementById("aM").value===""){toast("Indiquez la quantité et le prix payé");return}
+    p.stock=(p.stock??0)+q;p.achat=Math.round(m/q);conf.achats=conf.achats||[];conf.achats.push({t:Date.now(),id:p.id,n:p.n,q,m});saveConf();
+    if(m>0){jour.dep.push({t:Date.now(),cat:"Produits (stock)",m,note:"Achat "+q+" × "+p.n,esp});saveJ()}
+    toast(q+" × "+p.n+" ajouté"+(q>1?"s":"")+" au stock");return render()}
+  if("addprod" in a){const n=document.getElementById("npN").value.trim(),p=+document.getElementById("npP").value,s=+document.getElementById("npS").value||0,lot=+document.getElementById("npA").value||0;if(!n||!(p>0)){toast("Nom et prix de vente obligatoires");return}
+    conf.produits.push({id:uid(),n,p,achat:s?Math.round(lot/s):0,stock:s,seuil:Math.min(2,s)});saveConf();toast("Produit ajouté");return render()}
   if("savecoif" in a){conf.coiffeurs.forEach((c,i)=>{c.n=document.getElementById("cn"+i).value.trim()||c.n;c.pct=+document.getElementById("cp"+i).value});saveConf();toast("Coiffeurs enregistrés");return render()}
   if("savesvc" in a){conf.services.forEach((s,i)=>{s.n=document.getElementById("sn"+i).value.trim()||s.n;const p=+document.getElementById("sp"+i).value;if(p>=0)s.p=p});saveConf();toast("Prix enregistrés");return render()}
   if("savefid" in a){conf.fid=+document.getElementById("fidN").value;saveConf();toast("Fidélité mise à jour");return render()}
