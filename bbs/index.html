@@ -263,13 +263,15 @@ function fidelite(tel){const c=clients[telNet(tel)];const v=c?c.v:0;return{v,c,p
 
 function stats(j){
   const v=j.ventes.filter(x=>!x.annule), ca=v.reduce((a,x)=>a+x.total,0), dep=j.dep.reduce((a,x)=>a+x.m,0);
-  const pay={}, parC={}; let serv=0, prod=0, cout=0;
+  const pay={}, parC={}; let serv=0, prod=0, cout=0, nCli=0;
   v.forEach(x=>{pay[x.pay]=(pay[x.pay]||0)+x.total;
     const sv=x.items.filter(i=>i.k==="s").reduce((a,i)=>a+i.p*i.q,0)-(x.remise||0), pr=x.items.filter(i=>i.k==="p").reduce((a,i)=>a+i.p*i.q,0);
     cout+=x.items.filter(i=>i.k==="p").reduce((a,i)=>a+(i.c||0)*i.q,0);
-    serv+=sv;prod+=pr;parC[x.coif]=parC[x.coif]||{ca:0,n:0};parC[x.coif].ca+=sv;parC[x.coif].n++});
+    // 1 coupe = 1 client, même si plusieurs clients sont encaissés en une seule fois (les options comme les soins ne comptent pas)
+    const nc=Math.max(1,x.items.filter(i=>i.k==="s"&&(svc(i.id)||{}).cat!=="Options").reduce((a,i)=>a+i.q,0));nCli+=nc;
+    serv+=sv;prod+=pr;parC[x.coif]=parC[x.coif]||{ca:0,n:0};parC[x.coif].ca+=sv;parC[x.coif].n+=nc});
   const esp=pay["Espèces"]||0;
-  return{ca,dep,net:ca-dep,n:v.length,serv,prod,margeP:prod-cout,pay,parC,attendu:j.fond==null?null:j.fond+esp-j.dep.filter(d=>d.esp!==false).reduce((a,d)=>a+d.m,0)};
+  return{ca,dep,net:ca-dep,n:nCli,enc:v.length,serv,prod,margeP:prod-cout,pay,parC,attendu:j.fond==null?null:j.fond+esp-j.dep.filter(d=>d.esp!==false).reduce((a,d)=>a+d.m,0)};
 }
 
 // ———— Rendu ————
@@ -357,7 +359,7 @@ function vGerant(){
   const s=stats(jour);
   if(onglet==="bilan"){
     h+=`<div class="kpis"><div class="kpi fort"><div class="l">Recette du jour</div><div class="v num">${F(s.ca)}</div></div>
-      <div class="kpi"><div class="l">Clients</div><div class="v num">${s.n}</div></div><div class="kpi"><div class="l">Dépenses</div><div class="v num">${F(s.dep)}</div></div>
+      <div class="kpi"><div class="l">Clients</div><div class="v num">${s.n}</div>${s.enc&&s.enc!==s.n?`<small class="sous">en ${s.enc} encaissement${s.enc>1?"s":""}</small>`:""}</div><div class="kpi"><div class="l">Dépenses</div><div class="v num">${F(s.dep)}</div></div>
       <div class="kpi"><div class="l">Prestations</div><div class="v num">${F(s.serv)}</div></div><div class="kpi"><div class="l">Produits vendus</div><div class="v num">${F(s.prod)}</div></div>
       <div class="kpi" style="grid-column:1/-1"><div class="l">Bénéfice sur les produits</div><div class="v num" style="color:var(--ok)">${F(s.margeP)}</div></div></div>`+alerteStock();
     h+=`<h2>Par paiement</h2>`+PAIES.map(p=>`<div class="ligneb"><span>${p}</span><span class="num">${F(s.pay[p])}</span><span class="t"><i style="width:${s.ca?(s.pay[p]||0)/s.ca*100:0}%"></i></span></div>`).join("");
