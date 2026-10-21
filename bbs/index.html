@@ -10,6 +10,8 @@
 <meta name="description" content="Application de gestion du salon Balila Barber Street, développée par SIBYX Intelligence Digitale.">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Gestion Balila Barber Street</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icone.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
@@ -127,6 +129,7 @@ h2 small{font-family:var(--body);font-size:12px;font-weight:500;color:var(--encr
 .histo i.auj{background:var(--rouge)}
 .histo span{font-size:11px;color:var(--encre-3)}
 .histo em{font-style:normal;font-size:10px;color:var(--encre-2)}
+.alerte-code{background:var(--rouge-doux);color:var(--rouge);border-radius:10px;padding:10px 12px;margin:0 0 12px;font-size:14px}
 .verrou{margin-top:40px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
 .verrou input{max-width:180px;text-align:center;font-size:24px;letter-spacing:.4em}
 .err{color:var(--rouge);font-size:13px;min-height:18px}
@@ -181,7 +184,7 @@ const CATS=["Produits (stock)","Électricité","Loyer","Matériel","Entretien","
 
 // ———— Configuration (prix d'exemple, à remplacer par les vrais) ————
 const CONF_DEFAUT={code:"1234",fid:10,demo:true,
-  coiffeurs:[{id:"c1",n:"Coiffeur 1",pct:50},{id:"c2",n:"Coiffeur 2",pct:50}],
+  coiffeurs:[{id:"c1",n:"Kess",pct:50},{id:"c2",n:"?",pct:50}],
   // Tarifs réels relevés sur balila-barber.netlify.app (octobre 2026). p:0 = prix à confirmer au salon, saisi à la caisse.
   services:[
     {id:"c_simple",cat:"Classiques",n:"Coupe simple",p:1000},{id:"c_zero",cat:"Classiques",n:"Boule à zéro",p:1000},{id:"c_enfant",cat:"Classiques",n:"Coupe simple enfant",p:500},
@@ -193,7 +196,7 @@ const CONF_DEFAUT={code:"1234",fid:10,demo:true,
   // Stock réel du salon (note du 20/10/2026). La note donne des prix pour le LOT : ici convertis à l'unité (p = vente, achat = coût).
   // stock:null = quantité inconnue (« à compter »). seuil = alerte quand il en reste ce nombre ou moins.
   produits:[
-    {id:"sitation",n:"Sitation",p:1000,achat:107,stock:7,seuil:2},
+    {id:"sitation",n:"Sitation",p:1000,achat:750,stock:7,seuil:2},
     {id:"skala",n:"Skala",p:1000,achat:167,stock:3,seuil:1},
     {id:"blackhair",n:"Black hair",p:525,achat:100,stock:10,seuil:3},
     {id:"peigne",n:"Peigne",p:250,achat:100,stock:2,seuil:1},
@@ -207,6 +210,16 @@ const CONF_DEFAUT={code:"1234",fid:10,demo:true,
 let conf=lire("bbs3:conf",null);
 if(!conf){conf=structuredClone(CONF_DEFAUT);ecrire("bbs3:conf",conf);semerDemo();}
 function saveConf(){ecrire("bbs3:conf",conf)}
+// ———— Mises à jour de la configuration déjà enregistrée sur la tablette ————
+// Chaque ligne s'applique une seule fois. Les ventes, clients et rendez-vous ne sont jamais touchés.
+const MAJ=[
+  c=>{const c2=c.coiffeurs.find(x=>x.id==="c2");if(c2&&c2.n==="Coiffeur 2")c2.n="?"},
+  // 21/10/2026 : coiffeur 1 = Kess ; Sitation coûte 750 F l'unité (et non 107 F). On corrige aussi le coût des ventes de Sitation déjà faites.
+  c=>{const c1=c.coiffeurs.find(x=>x.id==="c1");if(c1&&c1.n==="Coiffeur 1")c1.n="Kess";
+    const st=c.produits.find(x=>x.id==="sitation");if(st&&st.achat===107)st.achat=750;
+    try{Object.keys(localStorage).filter(k=>k.startsWith("bbs3:j:")).forEach(k=>{const j=JSON.parse(localStorage.getItem(k));let m=false;(j.ventes||[]).forEach(v=>(v.items||[]).forEach(i=>{if(i.k==="p"&&i.id==="sitation"&&i.c===107){i.c=750;m=true}}));if(m)localStorage.setItem(k,JSON.stringify(j))})}catch(e){}}
+];
+(function(){const v=conf.v||0;if(v<MAJ.length){MAJ.slice(v).forEach(f=>{try{f(conf)}catch(e){}});conf.v=MAJ.length;saveConf()}})();
 
 let cle=cleJ(), jour=lire("bbs3:j:"+cle,{ventes:[],dep:[],fond:null,reel:null});
 let rdv=lire("bbs3:rdv",[]), clients=lire("bbs3:cli",{});
@@ -339,7 +352,8 @@ function vVerrou(){return`<div class="verrou"><h2>Espace gérant</h2><label for=
 
 function vGerant(){
   const T={bilan:"Bilan",coif:"Coiffeurs",dep:"Dépenses",caisse:"Caisse",stock:"Stock",histo:"7 jours",reglages:"Réglages"};
-  let h=`<div class="tabs">${Object.entries(T).map(([k,l])=>`<button data-tab="${k}" aria-pressed="${k===onglet}">${l}</button>`).join("")}<button data-fermer>Verrouiller</button></div>`;
+  let h=(!conf.demo&&conf.code==="1234")?`<div class="alerte-code">Le code est encore 1234, connu de tous. Changez-le dans <b>Réglages</b>.</div>`:"";
+  h+=`<div class="tabs">${Object.entries(T).map(([k,l])=>`<button data-tab="${k}" aria-pressed="${k===onglet}">${l}</button>`).join("")}<button data-fermer>Verrouiller</button></div>`;
   const s=stats(jour);
   if(onglet==="bilan"){
     h+=`<div class="kpis"><div class="kpi fort"><div class="l">Recette du jour</div><div class="v num">${F(s.ca)}</div></div>
@@ -393,8 +407,8 @@ function vGerant(){
     h+=`<h2>Coiffeurs</h2><div class="form">`+conf.coiffeurs.map((c,i)=>`<input id="cn${i}" value="${esc(c.n)}" aria-label="Nom coiffeur ${i+1}"><select id="cp${i}" aria-label="Part coiffeur ${i+1}">${[0,30,40,50,60,70].map(p=>`<option value="${p}" ${p===c.pct?"selected":""}>${p?p+" % pour lui":"Salaire fixe"}</option>`).join("")}</select>`).join("")+`<button class="btn full" data-savecoif>Enregistrer</button></div>`;
     h+=`<h2>Prix des prestations</h2><p class="note">Mettre 0 pour un prix à confirmer au salon : il sera demandé à la caisse.</p><div class="form">`+conf.services.map((s,i)=>`<input id="sn${i}" value="${esc(s.n)}" aria-label="Prestation ${i+1}"><input id="sp${i}" type="number" inputmode="numeric" value="${s.p}" aria-label="Prix prestation ${i+1}">`).join("")+`<button class="btn full" data-savesvc>Enregistrer</button></div>`;
     h+=`<h2>Fidélité</h2><div class="form"><label class="sous" for="fidN">Visite offerte tous les</label><select id="fidN">${[5,6,8,10,12].map(n=>`<option ${n===conf.fid?"selected":""}>${n}</option>`).join("")}</select><button class="btn full" data-savefid>Enregistrer</button></div>`;
-    h+=`<h2>Code gérant</h2><div class="form"><input id="nc" class="full" inputmode="numeric" placeholder="Nouveau code (4 à 8 chiffres)"><button class="btn full" data-code>Changer le code</button></div>`;
-    h+=`<p class="note">Les données restent dans le navigateur de ce téléphone. Utilisez toujours le même appareil au salon.</p>`;
+    h+=`<h2>Code gérant</h2><p class="note">Choisissez un code que vous seul connaissez. Personne d'autre, même SIBYX, ne peut alors ouvrir l'espace gérant.</p><div class="form"><input id="ac" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Code actuel"><input id="nc" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Nouveau code (4 à 8 chiffres)"><input id="nc2" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Retaper le nouveau code"><button class="btn full" data-code>Changer le code</button></div>`;
+    h+=`<p class="note">Les données restent uniquement sur cet appareil : elles ne sont envoyées nulle part, pas même à SIBYX. L'appli marche aussi sans internet. Utilisez toujours le même appareil au salon.</p>`;
   }
   return h;
 }
@@ -469,10 +483,12 @@ document.addEventListener("click",e=>{
   if("savecoif" in a){conf.coiffeurs.forEach((c,i)=>{c.n=document.getElementById("cn"+i).value.trim()||c.n;c.pct=+document.getElementById("cp"+i).value});saveConf();toast("Coiffeurs enregistrés");return render()}
   if("savesvc" in a){conf.services.forEach((s,i)=>{s.n=document.getElementById("sn"+i).value.trim()||s.n;const p=+document.getElementById("sp"+i).value;if(p>=0)s.p=p});saveConf();toast("Prix enregistrés");return render()}
   if("savefid" in a){conf.fid=+document.getElementById("fidN").value;saveConf();toast("Fidélité mise à jour");return render()}
-  if("code" in a){const v=document.getElementById("nc").value.trim();if(!/^\d{4,8}$/.test(v)){toast("4 à 8 chiffres");return}conf.code=v;saveConf();toast("Code changé");return render()}
+  if("code" in a){const old=document.getElementById("ac").value.trim(),v=document.getElementById("nc").value.trim(),v2=document.getElementById("nc2").value.trim();if(old!==conf.code){toast("Code actuel incorrect");return}if(!/^\d{4,8}$/.test(v)){toast("4 à 8 chiffres");return}if(v!==v2){toast("Les deux codes sont différents");return}if(v==="1234"){toast("Choisissez un autre code que 1234");return}conf.code=v;saveConf();toast("Code changé");return render()}
   if(a.copier){copier(bilanTexte(),a.copier);return}
 });
 render();
+// Hors-ligne : l'appli reste disponible sans connexion
+if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 </script>
 </body>
 </html>
