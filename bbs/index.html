@@ -33,7 +33,7 @@ html,body{background:var(--fond);color:var(--encre)}
 body{font-family:var(--body);font-size:15px;line-height:1.4;padding-inline:16px;padding-block:0 170px;max-width:580px;margin:0 auto}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--rouge);outline-offset:2px}
-input,select{font:inherit;color:var(--encre);background:var(--surface);border:1px solid var(--ligne);border-radius:8px;padding:10px 12px;width:100%;min-width:0}
+input,select,textarea{font:inherit;color:var(--encre);background:var(--surface);border:1px solid var(--ligne);border-radius:8px;padding:10px 12px;width:100%;min-width:0}
 .num{font-variant-numeric:tabular-nums}
 
 header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--fond);padding-block:12px 10px;display:flex;align-items:center;gap:12px}
@@ -97,7 +97,7 @@ h2 small{font-family:var(--body);font-size:12px;font-weight:500;color:var(--encr
 .mini{font-size:12px;padding:6px 9px;border-radius:6px;border:1px solid var(--ligne);color:var(--encre-2);background:var(--surface);white-space:nowrap}
 .mini.fort{background:var(--encre);color:var(--fond);border-color:var(--encre)}
 .mini.danger{border-color:var(--rouge);color:var(--rouge)}
-.pill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px}
+.pill{white-space:nowrap;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px}
 .pill.venu{background:var(--ok-doux);color:var(--ok)}
 .pill.absent{background:var(--rouge-doux);color:var(--rouge)}
 .vide{color:var(--encre-3);font-size:14px;padding:14px 0}
@@ -129,6 +129,20 @@ h2 small{font-family:var(--body);font-size:12px;font-weight:500;color:var(--encr
 .histo i.auj{background:var(--rouge)}
 .histo span{font-size:11px;color:var(--encre-3)}
 .histo em{font-style:normal;font-size:10px;color:var(--encre-2)}
+.wa{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:700;padding:7px 11px;border-radius:6px;background:#1E8A4C;color:#fff;text-decoration:none;white-space:nowrap}
+.wa.fait{background:var(--surface);color:var(--ok);border:1px solid var(--ok)}
+a.mini{text-decoration:none;display:inline-flex;align-items:center}
+.merci{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--ok-doux);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:14px}
+.merci span{flex:1;min-width:150px}
+.consent{grid-column:1/-1;font-size:13px;display:flex;gap:8px;align-items:center;color:var(--encre-2)}
+.consent input{width:auto;flex-shrink:0}
+textarea{min-height:96px;resize:vertical}
+.li.clic{width:100%;text-align:left;color:inherit;background:none}
+.li.clic:active{background:var(--rouge-doux)}
+.pill.neutre{background:var(--fond);color:var(--encre-3);border:1px solid var(--ligne)}
+.barre-prog{height:6px;background:var(--fond);border-radius:3px;overflow:hidden;margin:6px 0 10px}
+.barre-prog i{display:block;height:100%;background:var(--ok)}
+details.mod summary{cursor:pointer;font-weight:700;padding:10px 0}
 .alerte-code{background:var(--rouge-doux);color:var(--rouge);border-radius:10px;padding:10px 12px;margin:0 0 12px;font-size:14px}
 .verrou{margin-top:40px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
 .verrou input{max-width:180px;text-align:center;font-size:24px;letter-spacing:.4em}
@@ -217,7 +231,11 @@ const MAJ=[
   // 21/10/2026 : coiffeur 1 = Kess ; Sitation coûte 750 F l'unité (et non 107 F). On corrige aussi le coût des ventes de Sitation déjà faites.
   c=>{const c1=c.coiffeurs.find(x=>x.id==="c1");if(c1&&c1.n==="Coiffeur 1")c1.n="Kess";
     const st=c.produits.find(x=>x.id==="sitation");if(st&&st.achat===107)st.achat=750;
-    try{Object.keys(localStorage).filter(k=>k.startsWith("bbs3:j:")).forEach(k=>{const j=JSON.parse(localStorage.getItem(k));let m=false;(j.ventes||[]).forEach(v=>(v.items||[]).forEach(i=>{if(i.k==="p"&&i.id==="sitation"&&i.c===107){i.c=750;m=true}}));if(m)localStorage.setItem(k,JSON.stringify(j))})}catch(e){}}
+    try{Object.keys(localStorage).filter(k=>k.startsWith("bbs3:j:")).forEach(k=>{const j=JSON.parse(localStorage.getItem(k));let m=false;(j.ventes||[]).forEach(v=>(v.items||[]).forEach(i=>{if(i.k==="p"&&i.id==="sitation"&&i.c===107){i.c=750;m=true}}));if(m)localStorage.setItem(k,JSON.stringify(j))})}catch(e){}},
+  // 23/10/2026 : CRM. On calcule le total dépensé et le coiffeur habituel de chaque client à partir des ventes déjà enregistrées.
+  c=>{const cl=lire("bbs3:cli",{}),cpt={},tot={};
+    try{Object.keys(localStorage).filter(k=>k.startsWith("bbs3:j:")).forEach(k=>{const j=JSON.parse(localStorage.getItem(k));(j.ventes||[]).filter(v=>!v.annule&&v.tel&&cl[v.tel]).forEach(v=>{tot[v.tel]=(tot[v.tel]||0)+v.total;cpt[v.tel]=cpt[v.tel]||{};cpt[v.tel][v.coif]=(cpt[v.tel][v.coif]||0)+1})})}catch(e){}
+    Object.entries(cpt).forEach(([t,o])=>{cl[t].dep=tot[t];cl[t].coif=Object.entries(o).sort((a,b)=>b[1]-a[1])[0][0]});ecrire("bbs3:cli",cl)}
 ];
 (function(){const v=conf.v||0;if(v<MAJ.length){MAJ.slice(v).forEach(f=>{try{f(conf)}catch(e){}});conf.v=MAJ.length;saveConf()}})();
 
@@ -241,7 +259,8 @@ function semerDemo(){
     {id:uid(),date:d,h:"14:00",nom:"Seydou (exemple)",tel:"79000003",sid:"d_drop",coif:"c1",st:"prevu"},
     {id:uid(),date:d,h:"15:30",nom:"Adama (exemple)",tel:"76000001",sid:"t_corn",coif:"c2",st:"prevu"},
     {id:uid(),date:d,h:"17:00",nom:"Bakary (exemple)",tel:"65000004",sid:"k_blanc",coif:"c1",st:"prevu"}]);
-  ecrire("bbs3:cli",{"76000001":{nom:"Moussa (exemple)",v:9,der:at(9,40)},"66000002":{nom:"Ibrahim (exemple)",v:4,der:at(10,15)}});
+  {const dm=new Date(Date.now()+2*864e5),an=String(dm.getMonth()+1).padStart(2,"0")+"-"+String(dm.getDate()).padStart(2,"0");
+  ecrire("bbs3:cli",{"76000001":{nom:"Moussa (exemple)",v:9,der:at(9,40),ok:true,dep:21000,coif:"c1",anniv:an},"66000002":{nom:"Ibrahim (exemple)",v:4,der:at(10,15),ok:false,dep:8000,coif:"c2"},"70000005":{nom:"Oumar (exemple)",v:6,der:Date.now()-41*864e5,ok:true,dep:14000,coif:"c1",note:"Toujours un dégradé bas"}})}
   // historique de la semaine pour la démo
   [1,2,3,4,5,6].forEach(i=>{const dd=new Date(now.getTime()-i*864e5);const n=[6,9,4,11,7,8][i-1];
     const vv=Array.from({length:n},(_,j)=>{const pay=CONF_DEFAUT.services.filter(x=>x.p>0&&x.p<=5000);const sv=pay[(i*3+j)%pay.length];return{t:dd.getTime(),coif:j%2?"c2":"c1",items:[{k:"s",id:sv.id,n:sv.n,p:sv.p,q:1}],total:sv.p,pay:PAIES[j%3]}});
@@ -254,9 +273,37 @@ function semerDemo(){
 let vue="caisse", ouvert=false, onglet="bilan";
 let panier=[], coif=null, paie="Espèces", ctel="", cnom="", offrir=false, rdvLie=null;
 let confAnnul=null, confReset=false, recherche="";
+let cok=false, cann="", dernier=null, ficheTel=null, filtreC="tous", confSup=false, impData=null;
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.k);toast.k=setTimeout(()=>t.hidden=true,1800)}
 const coifN=id=>(conf.coiffeurs.find(c=>c.id===id)||{n:"?"}).n;
 const svc=id=>conf.services.find(s=>s.id===id);
+
+// ———— CRM : base clients et messages WhatsApp en 1 clic ————
+const JOUR=864e5;
+const listeCli=()=>Object.entries(clients).map(([t,c])=>({t,...c}));
+const prenom=c=>((c&&c.nom)||"").replace(" (exemple)","").trim().split(/\s+/)[0]||"";
+const dateC=t=>new Date(t).toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:new Date(t).getFullYear()===new Date().getFullYear()?undefined:"numeric"});
+const MOIS_COURT=["janv.","févr.","mars","avril","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+const annivTxt=a=>{if(!a)return"";const[m,d]=a.split("-").map(Number);return d+" "+MOIS_COURT[m-1]};
+function lireAnniv(v){const t=String(v||"").trim();if(!t)return"";let m=t.match(/^(\d{1,2})\D+(\d{1,2})$/)||t.match(/^(\d{2})(\d{2})$/);if(!m)return null;const d=+m[1],mo=+m[2];if(mo<1||mo>12||d<1||d>31)return null;return String(mo).padStart(2,"0")+"-"+String(d).padStart(2,"0")}
+const MODELES_DEFAUT={
+  merci:"Merci {prenom} pour ta visite chez Balila Barber Street ! 💈\n{reste}\nÀ très vite.",
+  absent:"Salut {prenom}, ça fait un moment qu'on ne t'a pas vu chez Balila Barber Street. Passe quand tu veux, on t'attend ! 💈",
+  anniv:"Joyeux anniversaire {prenom} ! 🎉 Toute l'équipe de Balila Barber Street te souhaite une très belle journée."};
+const STOP="\n\n(Pour ne plus recevoir nos messages, réponds STOP.)";
+const modele=k=>(conf.modeles&&conf.modeles[k])||MODELES_DEFAUT[k];
+function remplir(txt,c){const r=(c.v||0)%conf.fid,reste=r===conf.fid-1?"Bonne nouvelle : ta prochaine visite est offerte !":"Carte fidélité : encore "+(conf.fid-1-r)+" visite"+(conf.fid-1-r>1?"s":"")+" et la suivante est offerte.";
+  return txt.replace(/\{prenom\}/g,prenom(c)).replace(/\{visites\}/g,c.v||0).replace(/\{reste\}/g,reste).replace(/ {2,}/g," ").replace(/ ([,.])/g,"$1")}
+function texteMsg(k,c){if(k==="promo")return remplir("Bonjour {prenom} !\n",c)+conf.promo.txt+"\n— Balila Barber Street"+STOP;return remplir(modele(k),c)+(k==="merci"?"":STOP)}
+const waLien=(t,txt)=>"https://wa.me/223"+t+(txt?"?text="+encodeURIComponent(txt):"");
+function boutonWA(k,c){const m=c.msg||{},fait=k==="promo"?!!(m.promo&&conf.promo&&m.promo[conf.promo.id]):k==="anniv"?m.anniv===new Date().getFullYear():k==="absent"?m.absent>(c.der||0):false;
+  return`<a class="wa${fait?" fait":""}" href="${waLien(c.t,texteMsg(k,c))}" target="_blank" rel="noopener" data-env="${k}|${c.t}">${fait?"✓ Envoyé":"Envoyer"}</a>`}
+function absents(){const lim=Date.now()-(conf.absJ||30)*JOUR;return listeCli().filter(c=>c.ok&&c.der&&c.der<lim).sort((a,b)=>(b.v||0)-(a.v||0))}
+function annivProches(){const res=[];for(let i=0;i<7;i++){const d=new Date(Date.now()+i*JOUR),k=String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");listeCli().filter(c=>c.ok&&c.anniv===k).forEach(c=>res.push({...c,dans:i}))}return res}
+function historique(t){const r=[];try{Object.keys(localStorage).filter(k=>k.startsWith("bbs3:j:")).forEach(k=>{const j=JSON.parse(localStorage.getItem(k));(j.ventes||[]).filter(v=>!v.annule&&v.tel===t).forEach(v=>r.push(v))})}catch(e){}return r.sort((a,b)=>b.t-a.t).slice(0,20)}
+function telechargerSauvegarde(){const data={};try{Object.keys(localStorage).filter(k=>k.startsWith("bbs3:")).forEach(k=>data[k]=localStorage.getItem(k))}catch(e){}
+  const b=new Blob([JSON.stringify({app:"bbs",version:1,date:Date.now(),data})],{type:"application/json"}),a=document.createElement("a");
+  a.href=URL.createObjectURL(b);a.download="balila-sauvegarde-"+cleJ()+".json";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
 
 function totalPanier(){let t=panier.reduce((a,i)=>a+i.p*i.q,0);if(offrir){const s=panier.filter(i=>i.k==="s");if(s.length)t-=Math.min(...s.map(i=>i.p))}return t}
 function fidelite(tel){const c=clients[telNet(tel)];const v=c?c.v:0;return{v,c,pret:v>0&&(v%conf.fid===conf.fid-1)}}
@@ -297,19 +344,23 @@ const aRacheter=()=>conf.produits.filter(estBas);
 function alerteStock(){const l=aRacheter();if(!l.length)return"";
   return`<div class="alerte" role="status"><b>Stock presque épuisé</b><span>${l.map(p=>`${esc(p.n)} (${p.stock})`).join(" · ")}</span></div>`}
 function vCaisse(){
-  let h=alerteStock()+`<div class="lbl">Coiffeur</div><div class="chips">${conf.coiffeurs.map(c=>`<button class="chip" data-coif="${c.id}" aria-pressed="${c.id===coif}">${esc(c.n)}</button>`).join("")}</div>`;
+  let h=alerteStock();
+  h+=`<div class="lbl">Coiffeur</div><div class="chips">${conf.coiffeurs.map(c=>`<button class="chip" data-coif="${c.id}" aria-pressed="${c.id===coif}">${esc(c.n)}</button>`).join("")}</div>`;
   const cats=[...new Set(conf.services.map(s=>s.cat||"Autres"))];
   cats.forEach(c=>{h+=`<div class="lbl">${esc(c)}</div><div class="grille">${conf.services.filter(s=>(s.cat||"Autres")===c).map(s=>{const q=panier.filter(i=>i.k==="s"&&i.id===s.id).reduce((a,i)=>a+i.q,0);
     return`<button class="tuile" data-add="s:${s.id}"><span class="n">${esc(s.n)}</span><span class="p num">${s.p?s.p.toLocaleString("fr-FR"):`<span class="s">Prix à confirmer</span>`}</span>${q?`<span class="q">${q}</span>`:""}</button>`}).join("")}</div>`});
   h+=`<div class="lbl">Produits</div><div class="grille">${conf.produits.map(p=>{const q=panier.filter(i=>i.k==="p"&&i.id===p.id).reduce((a,i)=>a+i.q,0);const inconnu=p.stock==null,rest=inconnu?1:p.stock-q,b=estBas(p);
     return`<button class="tuile" data-add="p:${p.id}" ${rest<=0?"disabled":""}><span class="n">${esc(p.n)}</span><span class="p num">${p.p.toLocaleString("fr-FR")}</span><span class="s${b?" bas":""}">${inconnu?"Stock à compter":p.stock<=0?"Rupture":b?"Plus que "+p.stock:"Stock : "+p.stock}</span>${q?`<span class="q">${q}</span>`:""}</button>`}).join("")}</div>`;
   const f=fidelite(ctel), n=telNet(ctel).length===8;
+  if(dernier&&clients[dernier]){const c={t:dernier,...clients[dernier]};h+=`<div class="merci"><span>Encaissé pour <b>${esc(c.nom||c.t)}</b>. Lui envoyer un merci sur WhatsApp ?</span><a class="wa" href="${waLien(c.t,texteMsg("merci",c))}" target="_blank" rel="noopener" data-env="merci|${c.t}">Envoyer</a><button class="mini" data-nomerci>Non</button></div>`}
   h+=`<div class="lbl">Client (facultatif, pour la fidélité)</div><div class="client"><input id="ctel" inputmode="tel" placeholder="Téléphone" value="${esc(ctel)}"><input id="cnom" placeholder="Prénom" value="${esc(cnom)}">`;
   if(n){h+=`<div class="fid"><span class="tampons">${Array.from({length:conf.fid},(_,i)=>`<i class="${i<f.v%conf.fid?"on":""}"></i>`).join("")}</span><span>${f.c?f.v+" visite"+(f.v>1?"s":""):"Nouveau client"}</span></div>`;
-    if(f.pret)h+=`<label class="offert full" style="grid-column:1/-1"><input type="checkbox" id="offrir" ${offrir?"checked":""} style="width:auto"> ${conf.fid}e visite : prestation offerte</label>`;}
+    if(f.pret)h+=`<label class="offert full" style="grid-column:1/-1"><input type="checkbox" id="offrir" ${offrir?"checked":""} style="width:auto"> ${conf.fid}e visite : prestation offerte</label>`;
+    if(!f.c||!f.c.anniv)h+=`<input id="cann" inputmode="numeric" placeholder="Anniversaire jj/mm (facultatif)" value="${esc(cann)}" style="grid-column:1/-1">`;
+    if(!f.c||!f.c.ok)h+=`<label class="consent"><input type="checkbox" id="cok" ${cok?"checked":""}> Le client accepte de recevoir les messages du salon sur WhatsApp (promos, rappels)</label>`;}
   h+=`</div>`;
   const v=[...jour.ventes].reverse();
-  h+=`<h2>Passages du jour <small>${jour.ventes.filter(x=>!x.annule).length} clients</small></h2><div class="liste">`;
+  h+=`<h2>Passages du jour <small>${(n=>n+" client"+(n>1?"s":""))(stats(jour).n)}</small></h2><div class="liste">`;
   h+=v.length?v.map(x=>`<div class="li${x.annule?" barre":""}"><span class="h num">${H(x.t)}</span><span class="d">${x.items.map(i=>(i.q>1?i.q+"× ":"")+esc(i.n)).join(", ")}<small>${esc(coifN(x.coif))} · ${x.pay}${x.nom?" · "+esc(x.nom):""}${x.remise?" · fidélité":""}</small></span><span class="m num">${F(x.total)}</span>${x.annule?"":`<button class="mini${confAnnul===x.t?" danger":""}" data-annul="${x.t}">${confAnnul===x.t?"Confirmer":"Annuler"}</button>`}</div>`).join(""):`<div class="vide">Aucun passage encore. Choisissez le coiffeur puis la prestation.</div>`;
   return h+"</div>";
 }
@@ -343,18 +394,38 @@ function vRdv(){
 }
 
 function vClients(){
-  const arr=Object.entries(clients).map(([t,c])=>({t,...c})).filter(c=>!recherche||c.t.includes(recherche)||(c.nom||"").toLowerCase().includes(recherche.toLowerCase())).sort((a,b)=>b.v-a.v);
-  let h=`<h2>Clients fidèles <small>${Object.keys(clients).length} enregistrés</small></h2><input id="cherche" placeholder="Chercher un nom ou un numéro" value="${esc(recherche)}">`;
-  h+=`<p class="note">Carte de fidélité : la ${conf.fid}e visite est offerte. Un client est enregistré quand on saisit son numéro à la caisse.</p><div class="liste" style="margin-top:8px">`;
-  h+=arr.length?arr.map(c=>{const r=c.v%conf.fid;return`<div class="li"><span class="d">${esc(c.nom||"Sans nom")}<small>${esc(c.t)} · dernière visite ${new Date(c.der).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</small></span><span class="acts" style="flex-direction:column;align-items:flex-end;gap:4px"><span class="tampons">${Array.from({length:conf.fid},(_,i)=>`<i class="${i<r?"on":""}"></i>`).join("")}</span><span class="sous">${c.v} visites${r===conf.fid-1?" · <b style=\"color:var(--ok)\">prochaine offerte</b>":""}</span></span></div>`}).join(""):`<div class="vide">Aucun client trouvé.</div>`;
-  return h+"</div>";
+  if(ficheTel&&clients[ficheTel])return vFiche(ficheTel);
+  const tous=listeCli(),lim=Date.now()-(conf.absJ||30)*JOUR,FI={tous:"Tous",ok:"Acceptent les messages",sans:"Sans accord",abs:"Absents"};
+  let arr=tous.filter(c=>!recherche||c.t.includes(recherche)||(c.nom||"").toLowerCase().includes(recherche.toLowerCase()));
+  if(filtreC==="ok")arr=arr.filter(c=>c.ok);if(filtreC==="sans")arr=arr.filter(c=>!c.ok);if(filtreC==="abs")arr=arr.filter(c=>c.der&&c.der<lim);
+  arr.sort((a,b)=>(b.v||0)-(a.v||0));
+  let h=`<h2>Clients <small>${tous.length} enregistrés · ${tous.filter(c=>c.ok).length} acceptent les messages</small></h2><input id="cherche" placeholder="Chercher un nom ou un numéro" value="${esc(recherche)}">`;
+  h+=`<div class="chips" style="margin-top:8px">${Object.entries(FI).map(([k,l])=>`<button class="chip" data-filtre="${k}" aria-pressed="${k===filtreC}">${l}</button>`).join("")}</div>`;
+  h+=`<p class="note">Touchez un client pour voir sa fiche. La ${conf.fid}e visite est offerte.</p><div class="liste" style="margin-top:8px">`;
+  h+=arr.length?arr.map(c=>{const r=(c.v||0)%conf.fid;return`<button class="li clic" data-fiche="${c.t}"><span class="d">${esc(c.nom||"Sans nom")} ${c.ok?"":`<span class="pill neutre">sans accord</span>`}<small>${esc(c.t)} · ${c.der?"dernière visite "+dateC(c.der):"jamais venu"}${c.dep?" · "+F(c.dep):""}</small></span><span class="acts" style="flex-direction:column;align-items:flex-end;gap:4px"><span class="tampons">${Array.from({length:conf.fid},(_,i)=>`<i class="${i<r?"on":""}"></i>`).join("")}</span><span class="sous">${c.v||0} visite${(c.v||0)>1?"s":""}${r===conf.fid-1?" · <b style=\"color:var(--ok)\">prochaine offerte</b>":""}</span></span></button>`}).join(""):`<div class="vide">Aucun client trouvé.</div>`;
+  h+=`</div><h2>Ajouter un client</h2><div class="form"><input id="ncT" inputmode="tel" placeholder="Téléphone (8 chiffres)"><input id="ncN" placeholder="Prénom"><input id="ncA" class="full" inputmode="numeric" placeholder="Anniversaire jj/mm (facultatif)"><label class="consent"><input type="checkbox" id="ncO"> Accepte de recevoir les messages du salon sur WhatsApp</label><button class="btn full" data-addcli>Ajouter</button></div>`;
+  return h;
+}
+function vFiche(t){
+  const c={t,...clients[t]},hist=historique(t);
+  let h=`<button class="mini" data-fiche="" style="margin-top:12px">← Tous les clients</button><h2>${esc(c.nom||"Sans nom")} <small>${esc(t)}</small></h2>`;
+  h+=`<div class="kpis"><div class="kpi"><div class="l">Visites</div><div class="v num">${c.v||0}</div></div><div class="kpi"><div class="l">Total dépensé</div><div class="v num">${F(c.dep||0)}</div></div>
+    <div class="kpi"><div class="l">Dernière visite</div><div class="v" style="font-size:17px">${c.der?dateC(c.der):"—"}</div></div><div class="kpi"><div class="l">Coiffeur habituel</div><div class="v" style="font-size:17px">${c.coif?esc(coifN(c.coif)):"—"}</div></div></div>`;
+  h+=`<div class="acts" style="justify-content:flex-start;margin-top:12px"><a class="wa" href="${waLien(t)}" target="_blank" rel="noopener">Écrire sur WhatsApp</a><a class="mini" href="tel:+223${t}">Appeler</a></div>`;
+  h+=`<h2>Infos</h2><div class="form"><input id="fN" class="full" placeholder="Prénom et nom" value="${esc(c.nom||"")}"><input id="fA" class="full" inputmode="numeric" placeholder="Anniversaire jj/mm" value="${c.anniv?esc(c.anniv.split("-").reverse().join("/")):""}">
+    <label class="consent"><input type="checkbox" id="fO" ${c.ok?"checked":""}> Accepte de recevoir les messages du salon (décocher si le client a répondu STOP)</label>
+    <textarea id="fNote" class="full" placeholder="Notes : coupe préférée, remarques…">${esc(c.note||"")}</textarea><button class="btn full" data-savefiche="${t}">Enregistrer</button></div>`;
+  h+=`<h2>Dernières visites <small>${hist.length}</small></h2><div class="liste">`+(hist.length?hist.map(v=>`<div class="li"><span class="h num">${dateC(v.t)}</span><span class="d">${v.items.map(i=>(i.q>1?i.q+"× ":"")+esc(i.n)).join(", ")}<small>${esc(coifN(v.coif))} · ${v.pay}</small></span><span class="m num">${F(v.total)}</span></div>`).join(""):`<div class="vide">Aucune visite enregistrée sur cette tablette.</div>`)+`</div>`;
+  h+=`<p class="note" style="margin-top:22px">Le client demande à être effacé ? Supprimez sa fiche : son nom et son numéro disparaissent (les montants des ventes restent dans les bilans).</p><button class="mini danger" data-supcli="${t}">${confSup?"Confirmer la suppression":"Supprimer ce client"}</button>`;
+  return h;
 }
 
 function vVerrou(){return`<div class="verrou"><h2>Espace gérant</h2><label for="code" class="sous">Entrez le code</label><input id="code" type="password" inputmode="numeric" maxlength="8" autocomplete="off"><div class="err" id="err"></div><button class="go" data-ouvrir style="max-width:200px">Ouvrir</button>${conf.demo?`<p class="note">Code de la démo : 1234</p>`:""}</div>`}
 
 function vGerant(){
-  const T={bilan:"Bilan",coif:"Coiffeurs",dep:"Dépenses",caisse:"Caisse",stock:"Stock",histo:"7 jours",reglages:"Réglages"};
+  const T={bilan:"Bilan",msg:"Messages",coif:"Coiffeurs",dep:"Dépenses",caisse:"Caisse",stock:"Stock",histo:"7 jours",reglages:"Réglages"};
   let h=(!conf.demo&&conf.code==="1234")?`<div class="alerte-code">Le code est encore 1234, connu de tous. Changez-le dans <b>Réglages</b>.</div>`:"";
+  if(!conf.demo&&Object.keys(clients).length&&(!conf.sauv||Date.now()-conf.sauv>7*JOUR))h+=`<div class="alerte-code">Pas de sauvegarde depuis plus de 7 jours. Faites-en une dans <b>Réglages</b>.</div>`;
   h+=`<div class="tabs">${Object.entries(T).map(([k,l])=>`<button data-tab="${k}" aria-pressed="${k===onglet}">${l}</button>`).join("")}<button data-fermer>Verrouiller</button></div>`;
   const s=stats(jour);
   if(onglet==="bilan"){
@@ -405,12 +476,34 @@ function vGerant(){
     h+=`<div class="kpis"><div class="kpi"><div class="l">Recette 7 jours</div><div class="v num">${F(tot)}</div></div><div class="kpi"><div class="l">Clients 7 jours</div><div class="v num">${cl}</div></div></div>`;
     h+=`<div class="histo">${js.map(j=>`<div><em class="num">${j.s.ca?Math.round(j.s.ca/1000)+"k":""}</em><i class="${j.auj?"auj":""}" style="height:${j.s.ca/mx*100}%"></i><span>${j.d.toLocaleDateString("fr-FR",{weekday:"short"}).replace(".","")}</span></div>`).join("")}</div>`;
   }
+  if(onglet==="msg"){
+    const tous=listeCli(),avec=tous.filter(c=>c.ok),sans=tous.length-avec.length;
+    h+=`<p class="note" style="margin-top:14px">Touchez « Envoyer » : WhatsApp s'ouvre avec le message déjà écrit, il reste à appuyer sur la flèche d'envoi. Seuls les <b>${avec.length}</b> clients qui ont donné leur accord apparaissent.${sans?` ${sans} client${sans>1?"s n'ont":" n'a"} pas encore donné son accord : demandez-le à la caisse.`:""}</p>`;
+    const an=annivProches();
+    h+=`<h2>Anniversaires <small>7 prochains jours</small></h2><div class="liste">`+(an.length?an.map(c=>`<div class="li"><span class="d">${esc(c.nom||c.t)}<small>${annivTxt(c.anniv)} · ${c.dans===0?"<b>aujourd'hui</b>":c.dans===1?"demain":"dans "+c.dans+" jours"}</small></span>${boutonWA("anniv",c)}</div>`).join(""):`<div class="vide">Aucun anniversaire cette semaine.</div>`)+`</div>`;
+    const ab=absents();
+    h+=`<h2>Clients absents <small>${ab.length} · pas venus depuis ${conf.absJ||30} jours ou plus</small></h2><div class="liste">`+(ab.length?ab.map(c=>`<div class="li"><span class="d">${esc(c.nom||c.t)}<small>Dernière visite ${dateC(c.der)} · ${c.v||0} visites</small></span>${boutonWA("absent",c)}</div>`).join(""):`<div class="vide">Aucun client absent pour l'instant.</div>`)+`</div>`;
+    h+=`<h2>Offre promotionnelle</h2>`;
+    if(conf.promo){const env=avec.filter(c=>c.msg&&c.msg.promo&&c.msg.promo[conf.promo.id]).length;
+      h+=`<div class="li" style="border:0"><span class="d" style="white-space:pre-wrap">${esc(conf.promo.txt)}<small>Préparée le ${dateC(conf.promo.t)} · ${env} / ${avec.length} envoyés</small></span></div><div class="barre-prog"><i style="width:${avec.length?env/avec.length*100:0}%"></i></div>`;
+      h+=`<div class="liste">`+(avec.length?avec.map(c=>`<div class="li"><span class="d">${esc(c.nom||c.t)}<small>${esc(c.t)}</small></span>${boutonWA("promo",c)}</div>`).join(""):`<div class="vide">Aucun client n'a encore donné son accord.</div>`)+`</div><button class="mini" data-finpromo style="margin-top:12px">Terminer cette offre</button>`;
+    }else h+=`<div class="form"><textarea id="promoTxt" class="full" placeholder="Ex : Ce samedi, dégradé à 1 500 F au lieu de 2 000 F. Venez nombreux !"></textarea><button class="btn full" data-promo>Préparer l'envoi</button></div><p class="note">L'appli ajoute « Bonjour + prénom » au début, et le nom du salon avec la mention STOP à la fin.</p>`;
+    h+=`<details class="mod"><summary>Modifier les messages automatiques</summary><div class="form"><label class="sous full" for="mMerci">Merci après la visite</label><textarea id="mMerci" class="full">${esc(modele("merci"))}</textarea>
+      <label class="sous full" for="mAbsent">Client absent</label><textarea id="mAbsent" class="full">${esc(modele("absent"))}</textarea>
+      <label class="sous full" for="mAnniv">Anniversaire</label><textarea id="mAnniv" class="full">${esc(modele("anniv"))}</textarea>
+      <label class="sous" for="mAbsJ">Absent après</label><select id="mAbsJ">${[21,30,45,60,90].map(n=>`<option value="${n}" ${n===(conf.absJ||30)?"selected":""}>${n} jours</option>`).join("")}</select>
+      <button class="btn full" data-savemod>Enregistrer</button><button class="mini full" data-resetmod>Remettre les messages d'origine</button></div>
+      <p class="note">Mots remplacés automatiquement : {prenom} = prénom du client, {visites} = nombre de visites, {reste} = où il en est sur sa carte fidélité.</p></details>`;
+  }
   if(onglet==="reglages"){
     h+=`<h2>Coiffeurs</h2><div class="form">`+conf.coiffeurs.map((c,i)=>`<input id="cn${i}" value="${esc(c.n)}" aria-label="Nom coiffeur ${i+1}"><select id="cp${i}" aria-label="Part coiffeur ${i+1}">${[0,30,40,50,60,70].map(p=>`<option value="${p}" ${p===c.pct?"selected":""}>${p?p+" % pour lui":"Salaire fixe"}</option>`).join("")}</select>`).join("")+`<button class="btn full" data-savecoif>Enregistrer</button></div>`;
     h+=`<h2>Prix des prestations</h2><p class="note">Mettre 0 pour un prix à confirmer au salon : il sera demandé à la caisse.</p><div class="form">`+conf.services.map((s,i)=>`<input id="sn${i}" value="${esc(s.n)}" aria-label="Prestation ${i+1}"><input id="sp${i}" type="number" inputmode="numeric" value="${s.p}" aria-label="Prix prestation ${i+1}">`).join("")+`<button class="btn full" data-savesvc>Enregistrer</button></div>`;
     h+=`<h2>Fidélité</h2><div class="form"><label class="sous" for="fidN">Visite offerte tous les</label><select id="fidN">${[5,6,8,10,12].map(n=>`<option ${n===conf.fid?"selected":""}>${n}</option>`).join("")}</select><button class="btn full" data-savefid>Enregistrer</button></div>`;
     h+=`<h2>Code gérant</h2><p class="note">Choisissez un code que vous seul connaissez. Personne d'autre, même SIBYX, ne peut alors ouvrir l'espace gérant.</p><div class="form"><input id="ac" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Code actuel"><input id="nc" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Nouveau code (4 à 8 chiffres)"><input id="nc2" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Retaper le nouveau code"><button class="btn full" data-code>Changer le code</button></div>`;
-    h+=`<p class="note">Les données restent uniquement sur cet appareil : elles ne sont envoyées nulle part, pas même à SIBYX. L'appli marche aussi sans internet. Utilisez toujours le même appareil au salon.</p>`;
+    h+=`<h2>Sauvegarde</h2><p class="note">Toutes les données (clients, ventes, stock) sont sur cette tablette. Si elle est perdue ou cassée, tout est perdu. Téléchargez une sauvegarde chaque semaine et gardez le fichier en lieu sûr : il est confidentiel.${conf.sauv?" Dernière sauvegarde : "+dateC(conf.sauv)+".":" Aucune sauvegarde faite."}</p>
+    <div class="form"><button class="btn full" data-export>Télécharger une sauvegarde</button><label class="mini full" for="imp" style="text-align:center;padding:11px;cursor:pointer">Restaurer une sauvegarde…</label><input id="imp" type="file" accept=".json,application/json" hidden></div>
+    ${impData?`<div class="ecart ko">Ce fichier date du ${dateC(impData.date)}. Il va <b>remplacer</b> toutes les données de cette tablette.<div class="acts" style="justify-content:flex-start;margin-top:8px"><button class="mini danger" data-impok>Oui, remplacer</button><button class="mini" data-impno>Annuler</button></div></div>`:""}
+    <p class="note">Les données restent uniquement sur cet appareil : elles ne sont envoyées nulle part, pas même à SIBYX. L'appli marche aussi sans internet. Utilisez toujours le même appareil au salon.</p>`;
   }
   return h;
 }
@@ -432,16 +525,38 @@ function copier(txt,zoneId){const sel=()=>{const el=document.getElementById(zone
 document.addEventListener("input",e=>{
   if(e.target.id==="ctel"){ctel=e.target.value;const c=clients[telNet(ctel)];if(c&&!cnom){cnom=c.nom||"";}offrir=false;const pos=e.target.selectionStart;render();const el=document.getElementById("ctel");el.focus();el.setSelectionRange(pos,pos)}
   if(e.target.id==="cnom")cnom=e.target.value;
+  if(e.target.id==="cann")cann=e.target.value;
   if(e.target.dataset&&e.target.dataset.libre!==undefined){const i=panier[+e.target.dataset.libre];if(i)i.p=Math.max(0,+e.target.value||0);
     document.getElementById("totalP").textContent=F(totalPanier());const manque=panier.some(x=>x.libre&&!(x.p>0)),g=document.getElementById("goBtn");
     g.disabled=!(panier.length&&coif&&!manque);g.textContent=panier.length&&!coif?"Choisir le coiffeur":manque?"Indiquer le prix":"Encaisser"}
   if(e.target.id==="cherche"){recherche=e.target.value;render();const el=document.getElementById("cherche");el.focus();el.setSelectionRange(recherche.length,recherche.length)}
 });
-document.addEventListener("change",e=>{if(e.target.id==="offrir"){offrir=e.target.checked;rPanier()}});
+document.addEventListener("change",e=>{if(e.target.id==="offrir"){offrir=e.target.checked;rPanier()}
+  if(e.target.id==="cok")cok=e.target.checked;
+  if(e.target.id==="imp"&&e.target.files[0]){const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(o.app!=="bbs"||!o.data)throw 0;impData=o}catch(x){impData=null;toast("Ce fichier n'est pas une sauvegarde de l'appli")}render()};r.readAsText(e.target.files[0])}});
+// Lien WhatsApp ouvert : on note l'envoi pour ne pas l'envoyer deux fois
+document.addEventListener("click",e=>{const l=e.target.closest("a[data-env]");if(!l)return;const[k,t]=l.dataset.env.split("|"),c=clients[t];if(!c)return;c.msg=c.msg||{};
+  if(k==="promo"&&conf.promo){c.msg.promo=c.msg.promo||{};c.msg.promo[conf.promo.id]=Date.now()}else if(k==="anniv")c.msg.anniv=new Date().getFullYear();else c.msg[k]=Date.now();
+  saveC();if(k==="merci")dernier=null;setTimeout(render,400)});
 document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="code")document.querySelector("[data-ouvrir]").click()});
 document.addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;const a=b.dataset;
-  if(a.vue){vue=a.vue;confAnnul=null;return render()}
+  if(a.vue){vue=a.vue;confAnnul=null;ficheTel=null;confSup=false;return render()}
+  if(a.fiche!==undefined){ficheTel=a.fiche||null;confSup=false;scrollTo(0,0);return render()}
+  if(a.filtre){filtreC=a.filtre;return render()}
+  if("nomerci" in a){dernier=null;return render()}
+  if(a.savefiche){const c=clients[a.savefiche],an=lireAnniv(document.getElementById("fA").value);if(an===null){toast("Anniversaire : écrire jj/mm");return}
+    c.nom=document.getElementById("fN").value.trim();c.anniv=an;c.ok=document.getElementById("fO").checked;c.note=document.getElementById("fNote").value.trim();saveC();toast("Fiche enregistrée");return render()}
+  if(a.supcli){if(!confSup){confSup=true;return render()}delete clients[a.supcli];saveC();ficheTel=null;confSup=false;toast("Client supprimé");return render()}
+  if("addcli" in a){const t=telNet(document.getElementById("ncT").value),an=lireAnniv(document.getElementById("ncA").value);if(t.length!==8){toast("Numéro à 8 chiffres");return}if(an===null){toast("Anniversaire : écrire jj/mm");return}
+    if(clients[t]){toast("Ce client existe déjà");ficheTel=t;return render()}clients[t]={nom:document.getElementById("ncN").value.trim(),v:0,der:null,prem:Date.now(),ok:document.getElementById("ncO").checked,anniv:an};saveC();toast("Client ajouté");return render()}
+  if("promo" in a){const t=document.getElementById("promoTxt").value.trim();if(t.length<5){toast("Écrivez l'offre");return}conf.promo={id:uid(),txt:t,t:Date.now()};saveConf();return render()}
+  if("finpromo" in a){conf.promo=null;saveConf();toast("Offre terminée");return render()}
+  if("savemod" in a){conf.modeles={merci:document.getElementById("mMerci").value.trim(),absent:document.getElementById("mAbsent").value.trim(),anniv:document.getElementById("mAnniv").value.trim()};conf.absJ=+document.getElementById("mAbsJ").value;saveConf();toast("Messages enregistrés");return render()}
+  if("resetmod" in a){conf.modeles=null;saveConf();toast("Messages d'origine remis");return render()}
+  if("export" in a){conf.sauv=Date.now();saveConf();telechargerSauvegarde();toast("Sauvegarde téléchargée");return render()}
+  if("impno" in a){impData=null;return render()}
+  if("impok" in a){try{effacerTout();Object.entries(impData.data).forEach(([k,v])=>{if(k.startsWith("bbs3:"))localStorage.setItem(k,v)})}catch(x){toast("Restauration impossible");return}location.reload();return}
   if("reset" in a){confReset=true;return render()}
   if("reset0" in a){confReset=false;return render()}
   if("reset2" in a){const garde={...conf,demo:false,coiffeurs:conf.coiffeurs,services:conf.services,produits:conf.produits};effacerTout();conf=garde;saveConf();jour={ventes:[],dep:[],fond:null,reel:null};rdv=[];clients={};saveJ();saveR();saveC();confReset=false;panier=[];toast("Prêt pour le premier vrai client");return render()}
@@ -454,13 +569,13 @@ document.addEventListener("click",e=>{
     const tot=totalPanier(),remise=panier.reduce((x,i)=>x+i.p*i.q,0)-tot,tn=telNet(ctel);
     jour.ventes.push({t:Date.now(),coif,items:panier.map(i=>({...i})),total:tot,remise,pay:paie,tel:tn,nom:cnom.trim()});saveJ();
     panier.filter(i=>i.k==="p").forEach(i=>{const p=conf.produits.find(x=>x.id===i.id);if(p&&p.stock!=null)p.stock=Math.max(0,p.stock-i.q)});saveConf();
-    if(tn.length===8){const c=clients[tn]||{nom:"",v:0};c.v++;c.der=Date.now();if(cnom.trim())c.nom=cnom.trim();clients[tn]=c;saveC()}
+    if(tn.length===8){const c=clients[tn]||{nom:"",v:0,prem:Date.now()};c.v++;c.der=Date.now();c.dep=(c.dep||0)+tot;c.coif=coif;if(cnom.trim())c.nom=cnom.trim();if(cok)c.ok=true;const an=lireAnniv(cann);if(an)c.anniv=an;clients[tn]=c;saveC();dernier=tn}else dernier=null
     if(rdvLie){const r=rdv.find(x=>x.id===rdvLie);if(r)r.st="venu";saveR()}
-    toast("Encaissé · "+F(tot)+(remise?" (fidélité)":""));panier=[];offrir=false;ctel="";cnom="";rdvLie=null;paie="Espèces";return render()}
+    toast("Encaissé · "+F(tot)+(remise?" (fidélité)":""));panier=[];offrir=false;ctel="";cnom="";cok=false;cann="";rdvLie=null;paie="Espèces";return render()}
   if(a.annul){const t=+a.annul;if(confAnnul===t){const v=jour.ventes.find(x=>x.t===t);v.annule=true;v.items.filter(i=>i.k==="p").forEach(i=>{const p=conf.produits.find(x=>x.id===i.id);if(p&&p.stock!=null)p.stock+=i.q});saveConf();if(v.tel&&clients[v.tel]){clients[v.tel].v=Math.max(0,clients[v.tel].v-1);saveC()}saveJ();confAnnul=null;toast("Passage annulé")}else confAnnul=t;return render()}
   if("addrdv" in a){const nom=document.getElementById("rNom").value.trim(),h=document.getElementById("rH").value,d=document.getElementById("rDate").value;if(!nom||!h||!d){toast("Prénom, date et heure obligatoires");return}
     rdv.push({id:uid(),date:d,h,nom,tel:document.getElementById("rTel").value.trim(),sid:document.getElementById("rS").value,coif:document.getElementById("rC").value,st:"prevu"});saveR();toast("Rendez-vous ajouté");return render()}
-  if(a.venu){const r=rdv.find(x=>x.id===a.venu),s=svc(r.sid);panier=s?[{k:"s",id:s.id,n:s.n,p:s.p,q:1}]:[];coif=r.coif;ctel=r.tel||"";cnom=r.nom.replace(" (exemple)","");rdvLie=r.id;offrir=false;vue="caisse";return render()}
+  if(a.venu){const r=rdv.find(x=>x.id===a.venu),s=svc(r.sid);panier=s?[{k:"s",id:s.id,n:s.n,p:s.p,q:1}]:[];coif=r.coif;ctel=r.tel||"";cok=false;cann="";cnom=r.nom.replace(" (exemple)","");rdvLie=r.id;offrir=false;vue="caisse";return render()}
   if(a.absent){rdv.find(x=>x.id===a.absent).st="absent";saveR();return render()}
   if(a.delrdv){rdv=rdv.filter(x=>x.id!==a.delrdv);saveR();return render()}
   if(a.rappel){const r=rdv.find(x=>x.id===a.rappel),d=new Date(r.date+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
