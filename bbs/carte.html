@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Ma carte fidélité</title>
+<meta property="og:title" content="Ma carte fidélité">
+<meta property="og:description" content="Vos visites et votre prochaine coupe offerte.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{--fond:#F3F4F6;--surface:#FFFFFF;--ligne:#DADDE4;--encre:#121318;--encre-2:#474B57;--encre-3:#878C99;--rouge:#C8102E;--bleu:#1D4E89;--ok:#1E8A4C;
+  --display:"Bricolage Grotesque","Arial Narrow",system-ui,sans-serif;--body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--fond:#0E1322;--surface:#161D31;--ligne:#27304A;--encre:#EEF1F7;--encre-2:#B4BCD0;--encre-3:#7A849C;--rouge:#FF4D5E;--bleu:#7FB0F0;--ok:#4CC27E;color-scheme:dark}}
+:root[data-theme="dark"]{--fond:#0E1322;--surface:#161D31;--ligne:#27304A;--encre:#EEF1F7;--encre-2:#B4BCD0;--encre-3:#7A849C;--rouge:#FF4D5E;--bleu:#7FB0F0;--ok:#4CC27E;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--fond);color:var(--encre);font-family:var(--body);line-height:1.4}
+main{max-width:460px;margin:0 auto;padding:24px 16px 40px}
+.carte{background:var(--surface);border:1px solid var(--ligne);border-radius:18px;padding:22px 20px;position:relative;overflow:hidden}
+.carte::before{content:"";position:absolute;left:0;top:0;bottom:0;width:10px;background:repeating-linear-gradient(135deg,var(--rouge) 0 8px,var(--surface) 8px 16px,var(--bleu) 16px 24px,var(--surface) 24px 32px)}
+.salon{font-family:var(--display);font-weight:800;font-size:22px;line-height:1.1;margin:0 0 2px 8px}
+.sous{font-size:13px;color:var(--encre-3);margin-left:8px}
+.nom{font-family:var(--display);font-weight:800;font-size:30px;margin:18px 0 4px 8px}
+.tampons{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:18px 0 6px 8px}
+.tampons i{aspect-ratio:1;border-radius:50%;border:2px solid var(--bleu);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;font-weight:700;color:var(--encre-3)}
+.tampons i.on{background:var(--bleu);color:#fff}
+.tampons i.cadeau{border-color:var(--ok);color:var(--ok);border-style:dashed}
+.etat{margin:14px 0 0 8px;font-weight:700;font-size:17px}
+.etat.ok{color:var(--ok)}
+.bloc{margin-top:16px;background:var(--surface);border:1px solid var(--ligne);border-radius:14px;padding:16px}
+.bloc b{font-family:var(--display);font-size:17px}
+.bloc p{margin:6px 0 12px;color:var(--encre-2);font-size:14px}
+.go{display:block;text-align:center;text-decoration:none;background:#1E8A4C;color:#fff;font-weight:700;border-radius:10px;padding:13px}
+.note{font-size:12px;color:var(--encre-3);text-align:center;margin-top:20px}
+.erreur{margin-top:40px;text-align:center;color:var(--encre-2)}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+// Carte fidélité du client. Les infos viennent du lien envoyé par le salon (après le #) : aucun serveur.
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const F=n=>(n||0).toLocaleString("fr-FR").replace(/ | /g," ")+" F";
+let D=null;try{D=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1).replace(/-/g,"+").replace(/_/g,"/")))))}catch(e){}
+const app=document.getElementById("app");
+if(!D||!D.n||!D.f){app.innerHTML=`<p class="erreur">Cette carte n'est pas valide.<br>Demandez au salon de vous renvoyer le lien.</p>`}
+else{
+  document.title="Ma carte · "+D.n;
+  const f=D.f,v=D.v||0,r=v%f,pret=r===f-1,reste=f-1-r;
+  let h=`<div class="carte"><p class="salon">${esc(D.n)}</p><div class="sous">Carte fidélité</div><p class="nom">${esc(D.p||"Ma carte")}</p>
+    <div class="sous">${v} visite${v>1?"s":""} au total</div>
+    <div class="tampons">${Array.from({length:f},(_,i)=>i===f-1?`<i class="cadeau">offert</i>`:`<i class="${i<r?"on":""}">${i<r?"✓":i+1}</i>`).join("")}</div>
+    <p class="etat${pret?" ok":""}">${pret?"🎉 Votre prochaine visite est offerte !":`Encore ${reste} visite${reste>1?"s":""} et la suivante est offerte.`}</p></div>`;
+  if(D.b>0&&D.r)h+=`<div class="bloc"><b>${D.b} réduction${D.b>1?"s":""} de ${F(D.r)}</b><p>Merci d'avoir envoyé ${D.b>1?"des amis":"un ami"} au salon ! Elle s'applique à votre prochaine visite.</p></div>`;
+  if(D.r){const txt=`Je te conseille ${D.n} pour ta coupe 💈. Dis à la caisse que tu viens de ma part (${D.p||"de la part d'un client"}${D.t?", "+D.t:""}).`;
+    h+=`<div class="bloc"><b>Parrainez un ami : ${F(D.r)} pour vous</b><p>Envoyez le salon à un ami. Quand il vient, vous gagnez ${F(D.r)} de réduction.</p><a class="go" href="https://wa.me/?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Envoyer à un ami sur WhatsApp</a></div>`}
+  if(D.w&&/^\d{8}$/.test(D.w))h+=`<div class="bloc"><b>Prendre rendez-vous</b><p>Écrivez directement au salon.</p><a class="go" href="https://wa.me/223${D.w}" target="_blank" rel="noopener">Écrire au salon</a></div>`;
+  h+=`<p class="note">Carte à jour au moment de votre dernière visite. En cas de doute, la caisse du salon fait foi.</p>`;
+  app.innerHTML=h;
+}
+</script>
+</body>
+</html>

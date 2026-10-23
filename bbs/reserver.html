@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Réserver</title>
+<meta property="og:title" content="Réserver ma coupe">
+<meta property="og:description" content="Choisissez votre coupe et votre heure, puis envoyez votre demande sur WhatsApp.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{--fond:#F3F4F6;--surface:#FFFFFF;--ligne:#DADDE4;--encre:#121318;--encre-2:#474B57;--encre-3:#878C99;--rouge:#C8102E;--bleu:#1D4E89;--ok:#1E8A4C;
+  --display:"Bricolage Grotesque","Arial Narrow",system-ui,sans-serif;--body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--fond:#0E1322;--surface:#161D31;--ligne:#27304A;--encre:#EEF1F7;--encre-2:#B4BCD0;--encre-3:#7A849C;--rouge:#FF4D5E;--bleu:#7FB0F0;--ok:#4CC27E;color-scheme:dark}}
+:root[data-theme="dark"]{--fond:#0E1322;--surface:#161D31;--ligne:#27304A;--encre:#EEF1F7;--encre-2:#B4BCD0;--encre-3:#7A849C;--rouge:#FF4D5E;--bleu:#7FB0F0;--ok:#4CC27E;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--fond);color:var(--encre);font-family:var(--body);font-size:16px;line-height:1.4}
+main{max-width:560px;margin:0 auto;padding:16px 16px 140px}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+header{display:flex;align-items:center;gap:12px;padding:6px 0 4px}
+.poteau{width:10px;height:40px;border-radius:5px;background:repeating-linear-gradient(135deg,var(--rouge) 0 6px,var(--surface) 6px 12px,var(--bleu) 12px 18px,var(--surface) 18px 24px);border:1px solid var(--ligne);flex-shrink:0}
+h1{font-family:var(--display);font-weight:800;font-size:26px;line-height:1.05;margin:0;text-wrap:balance}
+.sous{font-size:13px;color:var(--encre-3)}
+h2{font-family:var(--display);font-weight:800;font-size:19px;margin:24px 0 10px}
+h2 .n{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--encre);color:var(--fond);font-size:13px;align-items:center;justify-content:center;margin-right:6px;vertical-align:2px;font-family:var(--body)}
+.lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--encre-3);margin:14px 0 8px}
+.grille{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.tuile{background:var(--surface);border:1px solid var(--ligne);border-radius:10px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:4px;min-height:70px}
+.tuile .p{font-family:var(--display);font-weight:600;color:var(--bleu)}
+.tuile[aria-pressed="true"]{border:2px solid var(--rouge);padding:11px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:9px 13px;border-radius:999px;border:1px solid var(--ligne);background:var(--surface);font-size:14px;font-weight:600;color:var(--encre-2)}
+.chip[aria-pressed="true"]{border-color:var(--encre);background:var(--encre);color:var(--fond)}
+.chip:disabled{opacity:.35}
+input{width:100%;padding:12px;border:1px solid var(--ligne);border-radius:8px;background:var(--surface)}
+.barre{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--ligne);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.barre .in{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+.resume{font-size:14px;color:var(--encre-2);min-height:20px}
+.go{display:block;text-align:center;text-decoration:none;background:#1E8A4C;color:#fff;font-weight:700;border-radius:10px;padding:14px;font-size:16px}
+.go[aria-disabled="true"]{opacity:.35;pointer-events:none}
+.erreur{margin-top:40px;text-align:center;color:var(--encre-2)}
+.credit{margin-top:30px;text-align:center;font-size:12px;color:var(--encre-3)}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<div class="barre" id="barre" hidden><div class="in"><div class="resume" id="resume"></div><a class="go" id="go" target="_blank" rel="noopener" aria-disabled="true">Envoyer ma demande sur WhatsApp</a></div></div>
+<script>
+// Page publique de réservation. Toutes les infos du salon sont dans le lien (après le #) : aucun serveur, aucune donnée gardée.
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const F=n=>(n||0).toLocaleString("fr-FR").replace(/ | /g," ")+" F";
+let D=null;try{D=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1).replace(/-/g,"+").replace(/_/g,"/")))))}catch(e){}
+const st={s:null,j:0,h:null,c:"",nom:""};
+const JOURS=Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()+i);return d});
+const lib=(d,i)=>i===0?"Aujourd'hui":i===1?"Demain":d.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric"}).replace(".","");
+function creneaux(){const[oh,om]=(D.o||"09:00").split(":").map(Number),[fh,fm]=(D.f||"21:00").split(":").map(Number),r=[];
+  for(let m=oh*60+om;m<=fh*60+fm-30;m+=30)r.push(String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"));return r}
+function passe(h){if(st.j!==0)return false;const[a,b]=h.split(":").map(Number),n=new Date();return a*60+b<=n.getHours()*60+n.getMinutes()+15}
+function vue(){
+  const app=document.getElementById("app");
+  if(!D||!D.n||!D.w||!/^\d{8}$/.test(D.w)){app.innerHTML=`<p class="erreur">Ce lien de réservation n'est pas complet.<br>Demandez au salon de vous renvoyer le lien.</p>`;return}
+  document.title="Réserver · "+D.n;
+  const cats=[...new Set(D.s.map(x=>x[0]||"Prestations"))];
+  let h=`<header><span class="poteau" aria-hidden="true"></span><div><h1>${esc(D.n)}</h1><div class="sous">Réservez en 1 minute, réponse sur WhatsApp</div></div></header>`;
+  h+=`<h2><span class="n">1</span>Votre coupe</h2>`+cats.map(c=>`<div class="lbl">${esc(c)}</div><div class="grille">`+D.s.map((x,i)=>[x,i]).filter(([x])=>(x[0]||"Prestations")===c).map(([x,i])=>`<button class="tuile" data-s="${i}" aria-pressed="${st.s===i}"><span>${esc(x[1])}</span><span class="p">${x[2]?F(x[2]):"Prix au salon"}</span></button>`).join("")+`</div>`).join("");
+  h+=`<h2><span class="n">2</span>Le jour</h2><div class="chips">${JOURS.map((d,i)=>`<button class="chip" data-j="${i}" aria-pressed="${st.j===i}">${lib(d,i)}</button>`).join("")}</div>`;
+  h+=`<h2><span class="n">3</span>L'heure</h2><div class="chips">${creneaux().map(x=>`<button class="chip" data-h="${x}" aria-pressed="${st.h===x}" ${passe(x)?"disabled":""}>${x}</button>`).join("")}</div>`;
+  if(D.c&&D.c.length)h+=`<h2>Coiffeur <span class="sous">(facultatif)</span></h2><div class="chips"><button class="chip" data-c="" aria-pressed="${!st.c}">Peu importe</button>${D.c.map(c=>`<button class="chip" data-c="${esc(c)}" aria-pressed="${st.c===c}">${esc(c)}</button>`).join("")}</div>`;
+  h+=`<h2><span class="n">4</span>Votre prénom</h2><input id="nom" autocomplete="given-name" placeholder="Prénom" value="${esc(st.nom)}">`;
+  h+=`<p class="sous" style="margin-top:14px">Le salon confirme votre rendez-vous sur WhatsApp. Les prix sont donnés à titre indicatif.</p><p class="credit">Réservation proposée par SIBYX</p>`;
+  app.innerHTML=h;document.getElementById("barre").hidden=false;maj();
+}
+function maj(){const s=st.s!=null?D.s[st.s]:null,ok=s&&st.h&&!passe(st.h)&&st.nom.trim(),d=JOURS[st.j];
+  document.getElementById("resume").textContent=s?`${s[1]} · ${lib(d,st.j)} ${st.h?"à "+st.h:"(choisissez l'heure)"}`:"Choisissez votre coupe";
+  const g=document.getElementById("go");g.setAttribute("aria-disabled",ok?"false":"true");
+  if(ok){const txt=`Bonjour ${D.n}, je voudrais réserver :\n• ${s[1]}\n• ${d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})} à ${st.h}${st.c?"\n• avec "+st.c:""}\nPrénom : ${st.nom.trim()}\nMerci de me confirmer.`;
+    g.href="https://wa.me/223"+D.w+"?text="+encodeURIComponent(txt)}else g.removeAttribute("href")}
+document.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const a=b.dataset;
+  if(a.s!=null)st.s=+a.s;else if(a.j!=null){st.j=+a.j;if(st.h&&passe(st.h))st.h=null}else if(a.h!=null)st.h=a.h;else if(a.c!=null)st.c=a.c;else return;
+  const y=scrollY;vue();scrollTo(0,y)});
+document.addEventListener("input",e=>{if(e.target.id==="nom"){st.nom=e.target.value;maj()}});
+vue();
+</script>
+</body>
+</html>
