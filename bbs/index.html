@@ -278,6 +278,7 @@ const MAJ=[
 
 let cle=cleJ(), jour=lire("bbs3:j:"+cle,{ventes:[],dep:[],fond:null,reel:null});
 let rdv=lire("bbs3:rdv",[]), clients=lire("bbs3:cli",{});
+setTimeout(()=>{if(recompterVisites())render()},0);
 const saveJ=()=>ecrire("bbs3:j:"+cle,jour), saveR=()=>ecrire("bbs3:rdv",rdv), saveC=()=>ecrire("bbs3:cli",clients);
 // Si l'appli est ouverte dans plusieurs onglets, chaque onglet se remet à jour dès qu'un autre enregistre quelque chose
 addEventListener("storage",e=>{if(!e.key||!e.key.startsWith("bbs3:"))return;
@@ -348,6 +349,12 @@ function boutonWA(k,c){const m=c.msg||{},fait=k==="promo"?!!(m.promo&&conf.promo
   return`<a class="wa${fait?" fait":""}" href="${waLien(c.t,texteMsg(k,c))}" target="_blank" rel="noopener" data-env="${k}|${c.t}">${fait?"✓ Envoyé":"Envoyer"}</a>`}
 function absents(){const lim=Date.now()-(conf.absJ||30)*JOUR;return listeCli().filter(c=>c.ok&&c.der&&c.der<lim).sort((a,b)=>(b.v||0)-(a.v||0))}
 function annivProches(){const res=[];for(let i=0;i<7;i++){const d=new Date(Date.now()+i*JOUR),k=String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");listeCli().filter(c=>c.ok&&c.anniv===k).forEach(c=>res.push({...c,dans:i}))}return res}
+function toutesVentes(){const r=[];try{Object.keys(localStorage).filter(k=>k.startsWith("bbs3:j:")).forEach(k=>{const j=k==="bbs3:j:"+cle?jour:JSON.parse(localStorage.getItem(k));(j.ventes||[]).forEach(v=>{if(!v.annule)r.push({k,v})})})}catch(e){}return r}
+// Le nombre de visites ne peut jamais être plus petit que le nombre de passages enregistrés avec ce numéro
+function recompterVisites(){const st={};toutesVentes().forEach(({v})=>{if(!v.tel)return;const o=st[v.tel]=st[v.tel]||{n:0,dep:0,der:0};o.n++;o.dep+=v.total;o.der=Math.max(o.der,v.t)});
+  let ch=false;Object.entries(st).forEach(([t,o])=>{const c=clients[t];if(!c)return;if((c.v||0)<o.n){c.v=o.n;ch=true}if((c.dep||0)<o.dep){c.dep=o.dep;ch=true}if((c.der||0)<o.der){c.der=o.der;ch=true}});if(ch)saveC();return ch}
+const memeNom=(a,b)=>{const f=x=>String(x||"").replace(" (exemple)","").trim().toLowerCase();return f(a)&&f(a)===f(b)};
+function passagesSansNumero(c){return toutesVentes().filter(({v})=>!v.tel&&v.nom&&(memeNom(v.nom,c.nom)||memeNom(v.nom,prenom(c)))).sort((a,b)=>b.v.t-a.v.t)}
 function historique(t){const r=[];try{Object.keys(localStorage).filter(k=>k.startsWith("bbs3:j:")).forEach(k=>{const j=JSON.parse(localStorage.getItem(k));(j.ventes||[]).filter(v=>!v.annule&&v.tel===t).forEach(v=>r.push(v))})}catch(e){}return r.sort((a,b)=>b.t-a.t).slice(0,20)}
 // ———— Photos des coupes : gardées sur la tablette (IndexedDB), jamais envoyées ailleurs ————
 let PHDB=null;
@@ -506,7 +513,7 @@ function vClients(){
   h+=`<div class="chips" style="margin-top:8px">${Object.entries(FI).map(([k,l])=>`<button class="chip" data-filtre="${k}" aria-pressed="${k===filtreC}">${l}</button>`).join("")}</div>`;
   h+=`<p class="note">Touchez un client pour voir sa fiche. La ${conf.fid}e visite est offerte.</p><div class="liste" style="margin-top:8px">`;
   h+=arr.length?arr.map(c=>{const r=(c.v||0)%conf.fid;return`<button class="li clic" data-fiche="${c.t}"><span class="d">${esc(c.nom||"Sans nom")} ${c.ok?"":`<span class="pill neutre">sans accord</span>`}<small>${esc(c.t)} · ${c.der?"dernière visite "+dateC(c.der):"jamais venu"}${c.dep?" · "+F(c.dep):""}</small></span><span class="acts" style="flex-direction:column;align-items:flex-end;gap:4px"><span class="tampons">${Array.from({length:conf.fid},(_,i)=>`<i class="${i<r?"on":""}"></i>`).join("")}</span><span class="sous">${c.v||0} visite${(c.v||0)>1?"s":""}${r===conf.fid-1?" · <b style=\"color:var(--ok)\">prochaine offerte</b>":""}</span></span></button>`}).join(""):`<div class="vide">Aucun client trouvé.</div>`;
-  h+=`</div><h2>Ajouter un client</h2><div class="form"><input id="ncT" inputmode="tel" placeholder="Téléphone (8 chiffres)"><input id="ncN" placeholder="Prénom"><input id="ncA" class="full" inputmode="numeric" placeholder="Anniversaire jj/mm (facultatif)"><label class="consent"><input type="checkbox" id="ncO"> Accepte de recevoir les messages du salon sur WhatsApp</label><button class="btn full" data-addcli>Ajouter</button></div>`;
+  h+=`</div><h2>Ajouter un client</h2><p class="note">Pour un client qui passe maintenant, utilisez plutôt la case Client de la <b>caisse</b> : la visite est comptée toute seule.</p><div class="form"><input id="ncT" inputmode="tel" placeholder="Téléphone (8 chiffres)"><input id="ncN" placeholder="Prénom"><input id="ncA" inputmode="numeric" placeholder="Anniversaire jj/mm (facultatif)"><input id="ncV" type="number" min="0" inputmode="numeric" placeholder="Visites déjà faites (facultatif)"><label class="consent"><input type="checkbox" id="ncO"> Accepte de recevoir les messages du salon sur WhatsApp</label><button class="btn full" data-addcli>Ajouter</button></div>`;
   return h;
 }
 function vFiche(t){
@@ -519,6 +526,9 @@ function vFiche(t){
   h+=`<h2>Infos</h2><div class="form"><input id="fN" class="full" placeholder="Prénom et nom" value="${esc(c.nom||"")}"><input id="fA" class="full" inputmode="numeric" placeholder="Anniversaire jj/mm" value="${c.anniv?esc(c.anniv.split("-").reverse().join("/")):""}">
     <label class="consent"><input type="checkbox" id="fO" ${c.ok?"checked":""}> Accepte de recevoir les messages du salon (décocher si le client a répondu STOP)</label>
     <textarea id="fNote" class="full" placeholder="Notes : coupe préférée, remarques…">${esc(c.note||"")}</textarea><button class="btn full" data-savefiche="${t}">Enregistrer</button></div>`;
+  const ps=passagesSansNumero(c);
+  if(ps.length)h+=`<div class="merci" style="display:block"><b>${ps.length} passage${ps.length>1?"s":""} encaissé${ps.length>1?"s":""} sans numéro au nom « ${esc(prenom(c)||c.nom)} »</b><div class="sous" style="margin:2px 0 8px">Si c'était bien ce client, touchez « C'est lui » : la visite est ajoutée à sa carte.</div><div class="liste">`+ps.slice(0,10).map(({k,v})=>`<div class="li"><span class="h num">${dateC(v.t)}</span><span class="d">${v.items.map(i=>esc(i.n)).join(", ")}<small>${esc(coifN(v.coif))} · ${F(v.total)}</small></span><button class="mini fort" data-cestlui="${k}|${v.t}">C'est lui</button></div>`).join("")+`</div></div>`;
+  h+=`<h2>Visites</h2>`+(ouvert?`<div class="row"><button class="mini" data-vis="-1" aria-label="Retirer une visite">−1</button><b class="num" style="font-size:22px;min-width:40px;text-align:center">${c.v||0}</b><button class="mini" data-vis="1" aria-label="Ajouter une visite">+1</button><span class="sous">Correction par le gérant (ex. ancienne carte papier)</span></div>`:`<p class="note">Il manque des visites ? Le gérant peut les corriger ici après avoir ouvert l'espace Gérant avec son code.</p>`);
   h+=`<h2>Photos des coupes</h2><label class="btn" for="phIn" style="display:block;text-align:center;cursor:pointer" data-phpour="${t}">📷 Prendre une photo</label><div id="photos" class="photos" data-tel="${t}"></div>`;
   h+=`<h2>Dernières visites <small>${hist.length}</small></h2><div class="liste">`+(hist.length?hist.map(v=>`<div class="li"><span class="h num">${dateC(v.t)}</span><span class="d">${v.items.map(i=>(i.q>1?i.q+"× ":"")+esc(i.n)).join(", ")}<small>${esc(coifN(v.coif))} · ${v.pay}</small></span><span class="m num">${F(v.total)}</span></div>`).join(""):`<div class="vide">Aucune visite enregistrée sur cette tablette.</div>`)+`</div>`;
   h+=`<p class="note" style="margin-top:22px">Le client demande à être effacé ? Supprimez sa fiche : son nom et son numéro disparaissent (les montants des ventes restent dans les bilans).</p><button class="mini danger" data-supcli="${t}">${confSup?"Confirmer la suppression":"Supprimer ce client"}</button>`;
@@ -680,7 +690,11 @@ document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="code"
 document.addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;const a=b.dataset;
   if(a.vue){confDel=null;editProd=null;vue=a.vue;confAnnul=null;ficheTel=null;confSup=false;return render()}
-  if(a.fiche!==undefined){ficheTel=a.fiche||null;confSup=false;scrollTo(0,0);return render()}
+  if(a.vis&&ficheTel&&ouvert){const c=clients[ficheTel];c.v=Math.max(0,(c.v||0)+(+a.vis));saveC();toast(c.v+" visite"+(c.v>1?"s":""));return render()}
+  if(a.cestlui&&ficheTel){const[k,t]=a.cestlui.split("|"),j=k==="bbs3:j:"+cle?jour:lire(k,null),x=j&&j.ventes.find(v=>v.t===+t&&!v.tel);if(!x){toast("Passage introuvable");return render()}
+    clients=lire("bbs3:cli",clients);const c=clients[ficheTel];x.tel=ficheTel;c.v=(c.v||0)+1;c.der=Math.max(c.der||0,x.t);c.dep=(c.dep||0)+x.total;c.coif=x.coif;if(!c.prem||c.prem>x.t)c.prem=x.t;
+    if(k==="bbs3:j:"+cle)saveJ();else ecrire(k,j);saveC();toast("Visite ajoutée · "+c.v+" visite"+(c.v>1?"s":""));return render()}
+  if(a.fiche!==undefined){ficheTel=a.fiche||null;confSup=false;recompterVisites();scrollTo(0,0);return render()}
   if(a.qcoif!==undefined){qCoif=a.qcoif;const n=document.getElementById("qNom").value,t=document.getElementById("qTel").value;render();document.getElementById("qNom").value=n;document.getElementById("qTel").value=t;return}
   if("addq" in a){const n=document.getElementById("qNom").value.trim(),t=telNet(document.getElementById("qTel").value);if(!n){toast("Écrivez le prénom");return}
     jour.att=jour.att||[];jour.att.push({id:uid(),nom:n,tel:t.length===8?t:"",coif:qCoif||null,t:Date.now(),st:"attend"});saveJ();qCoif="";toast(n+" ajouté à la file");return render()}
@@ -703,7 +717,7 @@ document.addEventListener("click",e=>{
     c.nom=document.getElementById("fN").value.trim();c.anniv=an;c.ok=document.getElementById("fO").checked;c.note=document.getElementById("fNote").value.trim();saveC();toast("Fiche enregistrée");return render()}
   if(a.supcli){if(!confSup){confSup=true;return render()}delete clients[a.supcli];saveC();phSupprTel(a.supcli).catch(()=>{});ficheTel=null;confSup=false;toast("Client supprimé");return render()}
   if("addcli" in a){const t=telNet(document.getElementById("ncT").value),an=lireAnniv(document.getElementById("ncA").value);if(t.length!==8){toast("Numéro à 8 chiffres");return}if(an===null){toast("Anniversaire : écrire jj/mm");return}
-    if(clients[t]){toast("Ce client existe déjà");ficheTel=t;return render()}clients[t]={nom:document.getElementById("ncN").value.trim(),v:0,der:null,prem:Date.now(),ok:document.getElementById("ncO").checked,anniv:an};saveC();toast("Client ajouté");return render()}
+    if(clients[t]){toast("Ce client existe déjà");ficheTel=t;return render()}clients[t]={nom:document.getElementById("ncN").value.trim(),v:Math.max(0,+document.getElementById("ncV").value||0),der:null,prem:Date.now(),ok:document.getElementById("ncO").checked,anniv:an};saveC();toast("Client ajouté");return render()}
   if("promo" in a){const t=document.getElementById("promoTxt").value.trim();if(t.length<5){toast("Écrivez l'offre");return}conf.promo={id:uid(),txt:t,t:Date.now()};saveConf();return render()}
   if("finpromo" in a){conf.promo=null;saveConf();toast("Offre terminée");return render()}
   if("savemod" in a){conf.modeles={merci:document.getElementById("mMerci").value.trim(),absent:document.getElementById("mAbsent").value.trim(),anniv:document.getElementById("mAnniv").value.trim()};conf.absJ=+document.getElementById("mAbsJ").value;saveConf();toast("Messages enregistrés");return render()}
