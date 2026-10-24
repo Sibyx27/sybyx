@@ -170,6 +170,10 @@ details.mod summary{cursor:pointer;font-weight:700;padding:10px 0}
 .ph span{font-size:11px;color:var(--encre-3);padding:4px}
 .voile{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px}
 .voile img{max-width:100%;max-height:78vh;border-radius:10px}
+.client.boite{background:var(--surface);border:1px solid var(--ligne);border-radius:12px;padding:10px}
+.client.boite.connu{border-color:var(--ok)}
+.sugg{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sugg:empty{display:none}
 .alerte-code{background:var(--rouge-doux);color:var(--rouge);border-radius:10px;padding:10px 12px;margin:0 0 12px;font-size:14px}
 .verrou{margin-top:40px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
 .verrou input{max-width:180px;text-align:center;font-size:24px;letter-spacing:.4em}
@@ -311,7 +315,7 @@ function semerDemo(){
 let vue="caisse", ouvert=false, onglet="bilan";
 let panier=[], coif=null, paie="Espèces", ctel="", cnom="", offrir=false, rdvLie=null;
 let confAnnul=null, confReset=false, recherche="";
-let lierT=null, cpar="", cbon=false, dernierPar=null, qCoif="", confDel=null, editProd=null, etapeA=1, cok=false, cann="", dernier=null, ficheTel=null, filtreC="tous", confSup=false, impData=null;
+let sansNum=null, lierT=null, cpar="", cbon=false, dernierPar=null, qCoif="", confDel=null, editProd=null, etapeA=1, cok=false, cann="", dernier=null, ficheTel=null, filtreC="tous", confSup=false, impData=null;
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.k);toast.k=setTimeout(()=>t.hidden=true,1800)}
 const actifs=a=>a.filter(x=>!x.off);
 const coifN=id=>(conf.coiffeurs.find(c=>c.id===id)||{n:"?"}).n;
@@ -406,7 +410,7 @@ function render(){
   const app=document.getElementById("app");
   app.innerHTML=vue==="caisse"?vCaisse():vue==="attente"?vAttente():vue==="rdv"?vRdv():vue==="clients"?vClients():(ouvert?vGerant():vVerrou());
   document.getElementById("panier").hidden=vue!=="caisse";
-  document.body.style.paddingBottom=vue==="caisse"?"240px":"110px";
+  document.body.style.paddingBottom=vue==="caisse"?"270px":"110px";
   if(vue==="caisse")rPanier();
   chargerPhotos();
 }
@@ -415,26 +419,35 @@ const estBas=p=>p.stock!=null&&p.stock<=(p.seuil??2);
 const aRacheter=()=>conf.produits.filter(estBas);
 function alerteStock(){const l=aRacheter();if(!l.length)return"";
   return`<div class="alerte" role="status"><b>Stock presque épuisé</b><span>${l.map(p=>`${esc(p.n)} (${p.stock})`).join(" · ")}</span></div>`}
-function vCaisse(){
-  let h=alerteStock();
-  h+=`<div class="lbl">Coiffeur</div><div class="chips">${actifs(conf.coiffeurs).map(c=>`<button class="chip" data-coif="${c.id}" aria-pressed="${c.id===coif}">${esc(c.n)}</button>`).join("")}</div>`;
-  const cats=[...new Set(conf.services.map(s=>s.cat||"Autres"))];
-  cats.forEach(c=>{h+=`<div class="lbl">${esc(c)}</div><div class="grille">${conf.services.filter(s=>(s.cat||"Autres")===c).map(s=>{const q=panier.filter(i=>i.k==="s"&&i.id===s.id).reduce((a,i)=>a+i.q,0);
-    return`<button class="tuile" data-add="s:${s.id}"><span class="n">${esc(s.n)}</span><span class="p num">${s.p?s.p.toLocaleString("fr-FR"):`<span class="s">Prix à confirmer</span>`}</span>${q?`<span class="q">${q}</span>`:""}</button>`}).join("")}</div>`});
-  h+=`<div class="lbl">Produits</div><div class="grille">${conf.produits.map(p=>{const q=panier.filter(i=>i.k==="p"&&i.id===p.id).reduce((a,i)=>a+i.q,0);const inconnu=p.stock==null,rest=inconnu?1:p.stock-q,b=estBas(p);
-    return`<button class="tuile" data-add="p:${p.id}" ${rest<=0?"disabled":""}><span class="n">${esc(p.n)}</span><span class="p num">${p.p.toLocaleString("fr-FR")}</span><span class="s${b?" bas":""}">${inconnu?"Stock à compter":p.stock<=0?"Rupture":b?"Plus que "+p.stock:"Stock : "+p.stock}</span>${q?`<span class="q">${q}</span>`:""}</button>`}).join("")}</div>`;
+function blocClient(){let h="";
   const f=fidelite(ctel), n=telNet(ctel).length===8;
-  if(dernier&&clients[dernier]){const c={t:dernier,...clients[dernier]};h+=`<div class="merci"><span>Encaissé pour <b>${esc(c.nom||c.t)}</b>. Lui envoyer un merci sur WhatsApp ?</span><a class="wa" href="${waLien(c.t,texteMsg("merci",c))}" target="_blank" rel="noopener" data-env="merci|${c.t}">Envoyer</a><label class="mini" for="phIn" data-phpour="${c.t}" style="cursor:pointer">📷 Photo</label><button class="mini" data-nomerci>Non</button></div>`;
-    if(dernierPar&&clients[dernierPar]){const pa={t:dernierPar,...clients[dernierPar]};h+=`<div class="merci"><span><b>${esc(pa.nom||pa.t)}</b> a envoyé ce client : il gagne −${F(conf.par)} sur sa prochaine visite. Le lui dire ?</span><a class="wa" href="${waLien(pa.t,remplir("Merci {prenom} de nous avoir envoyé "+(prenom(c)||"un ami")+" ! 🙏 Ta prochaine visite chez {salon} : "+F(conf.par)+" de réduction.",pa))}" target="_blank" rel="noopener" data-env="par|${pa.t}">Envoyer</a></div>`}}
-  h+=`<div class="lbl">Client (facultatif, pour la fidélité)</div><div class="client"><input id="ctel" inputmode="tel" placeholder="Téléphone" value="${esc(ctel)}"><input id="cnom" placeholder="Prénom" value="${esc(cnom)}">`;
+  h+=`<div class="lbl">Client</div><div class="client boite${n?" connu":""}"><input id="ctel" inputmode="tel" placeholder="Téléphone du client" value="${esc(ctel)}"><input id="cnom" placeholder="Prénom (ou chercher un nom)" value="${esc(cnom)}" autocomplete="off"><div id="sugg" class="sugg">${suggestions()}</div>`;
   if(n){h+=`<div class="fid"><span class="tampons">${Array.from({length:conf.fid},(_,i)=>`<i class="${i<f.v%conf.fid?"on":""}"></i>`).join("")}</span><span>${f.c?f.v+" visite"+(f.v>1?"s":""):"Nouveau client"}</span></div>`;
     if(f.pret)h+=`<label class="offert full" style="grid-column:1/-1"><input type="checkbox" id="offrir" ${offrir?"checked":""} style="width:auto"> ${conf.fid}e visite : prestation offerte</label>`;
     if(!f.c||!f.c.anniv)h+=`<input id="cann" inputmode="numeric" placeholder="Anniversaire jj/mm (facultatif)" value="${esc(cann)}" style="grid-column:1/-1">`;
     if(f.c&&f.c.bonus>0&&conf.par)h+=`<label class="offert full" style="grid-column:1/-1"><input type="checkbox" id="cbon" ${cbon?"checked":""} style="width:auto"> Parrainage : −${F(conf.par)} (${f.c.bonus} réduction${f.c.bonus>1?"s":""} à utiliser)</label>`;
     if(!f.c&&conf.par)h+=`<input id="cpar" inputmode="tel" placeholder="Envoyé par un client ? Son numéro (facultatif)" value="${esc(cpar)}" style="grid-column:1/-1">`;
     if(!f.c||!f.c.ok)h+=`<label class="consent"><input type="checkbox" id="cok" ${cok?"checked":""}> Le client accepte de recevoir les messages du salon sur WhatsApp (promos, rappels)</label>`;}
-  if(!n&&panier.length)h+=`<p class="note" style="grid-column:1/-1;margin:0">Sans numéro de téléphone, la visite <b>ne compte pas</b> sur la carte fidélité.</p>`;
+  if(!n)h+=`<p class="note" style="grid-column:1/-1;margin:0">Tapez le numéro : le client est enregistré tout seul à l'encaissement et sa visite compte pour la fidélité.</p>`;
   h+=`</div>`;
+  return h}
+function suggestions(){const d=String(ctel||"").replace(/\D/g,""),q=(cnom||"").trim().toLowerCase();if(d.length===8)return"";
+  let l=[];if(d.length>=3)l=listeCli().filter(c=>c.t.includes(d.slice(-8)));else if(q.length>=2)l=listeCli().filter(c=>(c.nom||"").toLowerCase().includes(q));
+  l=l.sort((a,b)=>(b.der||0)-(a.der||0)).slice(0,4);
+  return l.length?`<span class="sous">Déjà client ?</span>`+l.map(c=>`<button class="chip" data-pick="${c.t}">${esc(c.nom||"Sans nom")} · ${esc(c.t)}</button>`).join(""):""}
+function vCaisse(){
+  let h=alerteStock();
+  const f=fidelite(ctel);
+  if(dernier&&clients[dernier]){const c={t:dernier,...clients[dernier]};h+=`<div class="merci"><span>Encaissé pour <b>${esc(c.nom||c.t)}</b>. Lui envoyer un merci sur WhatsApp ?</span><a class="wa" href="${waLien(c.t,texteMsg("merci",c))}" target="_blank" rel="noopener" data-env="merci|${c.t}">Envoyer</a><label class="mini" for="phIn" data-phpour="${c.t}" style="cursor:pointer">📷 Photo</label><button class="mini" data-nomerci>Non</button></div>`;
+    if(dernierPar&&clients[dernierPar]){const pa={t:dernierPar,...clients[dernierPar]};h+=`<div class="merci"><span><b>${esc(pa.nom||pa.t)}</b> a envoyé ce client : il gagne −${F(conf.par)} sur sa prochaine visite. Le lui dire ?</span><a class="wa" href="${waLien(pa.t,remplir("Merci {prenom} de nous avoir envoyé "+(prenom(c)||"un ami")+" ! 🙏 Ta prochaine visite chez {salon} : "+F(conf.par)+" de réduction.",pa))}" target="_blank" rel="noopener" data-env="par|${pa.t}">Envoyer</a></div>`}}
+  if(sansNum!=null){const x=jour.ventes.find(v=>v.t===sansNum&&!v.tel&&!v.annule);if(x)h+=`<div class="merci"><span>Encaissé <b>sans client</b>. L'enregistrer maintenant ?</span><div class="form full" style="width:100%"><input id="lierTel" inputmode="tel" placeholder="Téléphone"><input id="lierNom" placeholder="Prénom" value="${esc(x.nom||"")}"><button class="btn" data-lierok="${x.t}">Enregistrer</button><button class="mini" data-nosans>Non merci</button></div></div>`}
+  h+=`<div class="lbl">Coiffeur</div><div class="chips">${actifs(conf.coiffeurs).map(c=>`<button class="chip" data-coif="${c.id}" aria-pressed="${c.id===coif}">${esc(c.n)}</button>`).join("")}</div>`;
+  h+=blocClient();
+  const cats=[...new Set(conf.services.map(s=>s.cat||"Autres"))];
+  cats.forEach(c=>{h+=`<div class="lbl">${esc(c)}</div><div class="grille">${conf.services.filter(s=>(s.cat||"Autres")===c).map(s=>{const q=panier.filter(i=>i.k==="s"&&i.id===s.id).reduce((a,i)=>a+i.q,0);
+    return`<button class="tuile" data-add="s:${s.id}"><span class="n">${esc(s.n)}</span><span class="p num">${s.p?s.p.toLocaleString("fr-FR"):`<span class="s">Prix à confirmer</span>`}</span>${q?`<span class="q">${q}</span>`:""}</button>`}).join("")}</div>`});
+  h+=`<div class="lbl">Produits</div><div class="grille">${conf.produits.map(p=>{const q=panier.filter(i=>i.k==="p"&&i.id===p.id).reduce((a,i)=>a+i.q,0);const inconnu=p.stock==null,rest=inconnu?1:p.stock-q,b=estBas(p);
+    return`<button class="tuile" data-add="p:${p.id}" ${rest<=0?"disabled":""}><span class="n">${esc(p.n)}</span><span class="p num">${p.p.toLocaleString("fr-FR")}</span><span class="s${b?" bas":""}">${inconnu?"Stock à compter":p.stock<=0?"Rupture":b?"Plus que "+p.stock:"Stock : "+p.stock}</span>${q?`<span class="q">${q}</span>`:""}</button>`}).join("")}</div>`;
   const v=[...jour.ventes].reverse();
   h+=`<h2>Passages du jour <small>${(n=>n+" client"+(n>1?"s":""))(stats(jour).n)}</small></h2><div class="liste">`;
   h+=v.length?v.map(x=>`<div class="li${x.annule?" barre":""}"><span class="h num">${H(x.t)}</span><span class="d">${x.items.map(i=>(i.q>1?i.q+"× ":"")+esc(i.n)).join(", ")}<small>${esc(coifN(x.coif))} · ${x.pay}${x.nom?" · "+esc(x.nom):""}${x.remise?(x.parr?" · parrainage":" · fidélité"):""}</small></span><span class="m num">${F(x.total)}</span>${x.annule?"":`${x.tel?"":`<button class="mini fort" data-lier="${x.t}">+ N°</button>`}<button class="mini${confAnnul===x.t?" danger":""}" data-annul="${x.t}">${confAnnul===x.t?"Confirmer":"Annuler"}</button>`}</div>${lierT===x.t?`<div class="form" style="padding:8px 0 12px;border-bottom:1px solid var(--ligne)"><input id="lierTel" inputmode="tel" placeholder="Téléphone du client"><input id="lierNom" placeholder="Prénom" value="${esc(x.nom||"")}"><button class="btn full" data-lierok="${x.t}">Compter cette visite pour ce client</button></div>`:""}`).join(""):`<div class="vide">Aucun passage encore. Choisissez le coiffeur puis la prestation.</div>`;
@@ -444,6 +457,7 @@ function vCaisse(){
 function rPanier(){
   const t=totalPanier(), manque=panier.some(i=>i.libre&&!(i.p>0)), ok=panier.length&&coif&&!manque;
   document.getElementById("panier").innerHTML=`<div class="in">
+    ${panier.length?(telNet(ctel).length===8?`<div class="sous">👤 <b>${esc(cnom||telNet(ctel))}</b> · ${(clients[telNet(ctel)]||{}).v||0} visite(s) avant celle-ci</div>`:`<button class="sous" data-allerclient style="text-align:left;color:var(--alerte);font-weight:700">👤 Pas de client : toucher ici pour l'ajouter</button>`):""}
     <div class="lignes">${panier.length?panier.map((i,x)=>`${i.q>1?i.q+"× ":""}${esc(i.n)}${i.libre?` <input class="libre" id="libre${x}" data-libre="${x}" type="number" inputmode="numeric" placeholder="Prix F" value="${i.p||""}" aria-label="Prix de ${esc(i.n)}">`:""}<button data-moins="${x}" aria-label="Retirer">−</button>`).join(" · "):"Ticket vide"}${rdvLie?" · <b>RDV</b>":""}</div>
     <div class="row"><div class="chips">${PAIES.map(p=>`<button class="chip" data-paie="${p}" aria-pressed="${p===paie}">${p}</button>`).join("")}</div><span class="total num" id="totalP">${F(t)}</span></div>
     <div class="row">${panier.length?`<button class="sec" data-vider>Vider</button>`:""}<button class="go" id="goBtn" data-encaisser ${ok?"":"disabled"}>${panier.length&&!coif?"Choisir le coiffeur":manque?"Indiquer le prix":"Encaisser"}</button></div></div>`;
@@ -639,7 +653,7 @@ function copier(txt,zoneId){const sel=()=>{const el=document.getElementById(zone
 // ———— Actions ————
 document.addEventListener("input",e=>{
   if(e.target.id==="ctel"){ctel=e.target.value;const c=clients[telNet(ctel)];if(c&&!cnom){cnom=c.nom||"";}offrir=false;cbon=false;const pos=e.target.selectionStart;render();const el=document.getElementById("ctel");el.focus();el.setSelectionRange(pos,pos)}
-  if(e.target.id==="cnom")cnom=e.target.value;
+  if(e.target.id==="cnom"){cnom=e.target.value;const z=document.getElementById("sugg");if(z)z.innerHTML=suggestions()}
   if(e.target.id==="cann")cann=e.target.value;
   if(e.target.id==="cpar")cpar=e.target.value;
   if(e.target.dataset&&e.target.dataset.libre!==undefined){const i=panier[+e.target.dataset.libre];if(i)i.p=Math.max(0,+e.target.value||0);
@@ -675,11 +689,14 @@ document.addEventListener("click",e=>{
   if("addav" in a){const m=+document.getElementById("avM").value;if(!(m>0)){toast("Indiquez le montant");return}jour.av=jour.av||[];jour.av.push({t:Date.now(),coif:document.getElementById("avC").value,m,note:document.getElementById("avN").value.trim(),esp:document.getElementById("avE").checked});saveJ();toast("Avance notée · "+F(m));return render()}
   if(a.delav!==undefined){if(confDel!=="a:"+a.delav){confDel="a:"+a.delav;return render()}jour.av.splice(+a.delav,1);saveJ();confDel=null;toast("Avance supprimée");return render()}
   if("copresa" in a){const l=lienResa();try{navigator.clipboard.writeText(l).then(()=>toast("Lien copié"),()=>prompt("Copiez le lien :",l))}catch(x){prompt("Copiez le lien :",l)}return}
+  if("nosans" in a){sansNum=null;return render()}
+  if(a.pick){const c=clients[a.pick];ctel=a.pick;cnom=(c&&c.nom)||"";cbon=false;offrir=false;return render()}
+  if("allerclient" in a){scrollTo({top:0,behavior:"smooth"});setTimeout(()=>{const el=document.getElementById("ctel");if(el)el.focus()},300);return}
   if(a.lier){lierT=lierT===+a.lier?null:+a.lier;return render()}
   if(a.lierok){const x=jour.ventes.find(v=>v.t===+a.lierok),tn=telNet(document.getElementById("lierTel").value),nm=document.getElementById("lierNom").value.trim();
     if(!x||x.tel){lierT=null;return render()}if(tn.length!==8){toast("Numéro à 8 chiffres");return}
     clients=lire("bbs3:cli",{});const c=clients[tn]||{nom:"",v:0,prem:x.t};c.v=(c.v||0)+1;c.der=Math.max(c.der||0,x.t);c.dep=(c.dep||0)+x.total;c.coif=x.coif;if(nm)c.nom=nm;clients[tn]=c;
-    x.tel=tn;if(nm)x.nom=nm;saveC();saveJ();lierT=null;toast("Visite comptée · "+(c.nom||tn)+" : "+c.v+" visite"+(c.v>1?"s":""));return render()}
+    x.tel=tn;if(nm)x.nom=nm;saveC();saveJ();lierT=null;if(sansNum===x.t){sansNum=null;dernier=tn}toast("Visite comptée · "+(c.nom||tn)+" : "+c.v+" visite"+(c.v>1?"s":""));return render()}
   if(a.filtre){filtreC=a.filtre;return render()}
   if("nomerci" in a){dernier=null;dernierPar=null;return render()}
   if(a.savefiche){const c=clients[a.savefiche],an=lireAnniv(document.getElementById("fA").value);if(an===null){toast("Anniversaire : écrire jj/mm");return}
@@ -710,9 +727,9 @@ document.addEventListener("click",e=>{
     jour.ventes.push({t:Date.now(),coif,items:panier.map(i=>({...i})),total:tot,remise,pay:paie,tel:tn,nom:cnom.trim(),parr:cbon||undefined});saveJ();
     if(parOk){const pa=clients[pt];pa.bonus=(pa.bonus||0)+1;pa.filleuls=(pa.filleuls||0)+1;dernierPar=pt}else dernierPar=null;
     panier.filter(i=>i.k==="p").forEach(i=>{const p=conf.produits.find(x=>x.id===i.id);if(p&&p.stock!=null)p.stock=Math.max(0,p.stock-i.q)});saveConf();
-    if(tn.length===8){const c=clients[tn]||{nom:"",v:0,prem:Date.now()};c.v++;c.der=Date.now();c.dep=(c.dep||0)+tot;c.coif=coif;if(cnom.trim())c.nom=cnom.trim();if(cok)c.ok=true;if(parOk)c.par=pt;if(cbon&&c.bonus>0)c.bonus--;const an=lireAnniv(cann);if(an)c.anniv=an;clients[tn]=c;saveC();dernier=tn}else dernier=null
+    if(tn.length===8){const c=clients[tn]||{nom:"",v:0,prem:Date.now()};c.v++;c.der=Date.now();c.dep=(c.dep||0)+tot;c.coif=coif;if(cnom.trim())c.nom=cnom.trim();if(cok)c.ok=true;sansNum=null;if(parOk)c.par=pt;if(cbon&&c.bonus>0)c.bonus--;const an=lireAnniv(cann);if(an)c.anniv=an;clients[tn]=c;saveC();dernier=tn}else{dernier=null;sansNum=jour.ventes[jour.ventes.length-1].t}
     if(rdvLie){const r=rdv.find(x=>x.id===rdvLie);if(r)r.st="venu";saveR()}
-    toast("Encaissé · "+F(tot)+(remise?" (fidélité)":""));panier=[];offrir=false;ctel="";cnom="";cok=false;cann="";cpar="";cbon=false;rdvLie=null;paie="Espèces";return render()}
+    toast("Encaissé · "+F(tot)+(remise?" (fidélité)":""));panier=[];offrir=false;ctel="";cnom="";cok=false;cann="";cpar="";cbon=false;rdvLie=null;paie="Espèces";render();scrollTo({top:0,behavior:"smooth"});return}
   if(a.annul){const t=+a.annul;if(confAnnul===t){const v=jour.ventes.find(x=>x.t===t);v.annule=true;v.items.filter(i=>i.k==="p").forEach(i=>{const p=conf.produits.find(x=>x.id===i.id);if(p&&p.stock!=null)p.stock+=i.q});saveConf();if(v.tel&&clients[v.tel]){clients[v.tel].v=Math.max(0,clients[v.tel].v-1);saveC()}saveJ();confAnnul=null;toast("Passage annulé")}else confAnnul=t;return render()}
   if("addrdv" in a){const nom=document.getElementById("rNom").value.trim(),h=document.getElementById("rH").value,d=document.getElementById("rDate").value;if(!nom||!h||!d){toast("Prénom, date et heure obligatoires");return}
     rdv.push({id:uid(),date:d,h,nom,tel:document.getElementById("rTel").value.trim(),sid:document.getElementById("rS").value,coif:document.getElementById("rC").value,st:"prevu"});saveR();toast("Rendez-vous ajouté");return render()}
