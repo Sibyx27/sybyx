@@ -275,6 +275,11 @@ const MAJ=[
 let cle=cleJ(), jour=lire("bbs3:j:"+cle,{ventes:[],dep:[],fond:null,reel:null});
 let rdv=lire("bbs3:rdv",[]), clients=lire("bbs3:cli",{});
 const saveJ=()=>ecrire("bbs3:j:"+cle,jour), saveR=()=>ecrire("bbs3:rdv",rdv), saveC=()=>ecrire("bbs3:cli",clients);
+// Si l'appli est ouverte dans plusieurs onglets, chaque onglet se remet à jour dès qu'un autre enregistre quelque chose
+addEventListener("storage",e=>{if(!e.key||!e.key.startsWith("bbs3:"))return;
+  if(e.key==="bbs3:cli")clients=lire("bbs3:cli",{});else if(e.key==="bbs3:conf")conf=lire("bbs3:conf",conf);else if(e.key==="bbs3:rdv")rdv=lire("bbs3:rdv",[]);else if(e.key==="bbs3:j:"+cle)jour=lire("bbs3:j:"+cle,jour);else return;
+  const f=document.activeElement;if(f&&/INPUT|TEXTAREA|SELECT/.test(f.tagName))return;render()});
+addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible")return;clients=lire("bbs3:cli",{});conf=lire("bbs3:conf",conf);rdv=lire("bbs3:rdv",[]);jour=lire("bbs3:j:"+cle,jour);render()});
 
 function semerDemo(){
   const now=new Date(), at=(h,m)=>{const d=new Date(now);d.setHours(h,m,0,0);return d.getTime()};
@@ -306,7 +311,7 @@ function semerDemo(){
 let vue="caisse", ouvert=false, onglet="bilan";
 let panier=[], coif=null, paie="Espèces", ctel="", cnom="", offrir=false, rdvLie=null;
 let confAnnul=null, confReset=false, recherche="";
-let cpar="", cbon=false, dernierPar=null, qCoif="", confDel=null, editProd=null, etapeA=1, cok=false, cann="", dernier=null, ficheTel=null, filtreC="tous", confSup=false, impData=null;
+let lierT=null, cpar="", cbon=false, dernierPar=null, qCoif="", confDel=null, editProd=null, etapeA=1, cok=false, cann="", dernier=null, ficheTel=null, filtreC="tous", confSup=false, impData=null;
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.k);toast.k=setTimeout(()=>t.hidden=true,1800)}
 const actifs=a=>a.filter(x=>!x.off);
 const coifN=id=>(conf.coiffeurs.find(c=>c.id===id)||{n:"?"}).n;
@@ -428,10 +433,11 @@ function vCaisse(){
     if(f.c&&f.c.bonus>0&&conf.par)h+=`<label class="offert full" style="grid-column:1/-1"><input type="checkbox" id="cbon" ${cbon?"checked":""} style="width:auto"> Parrainage : −${F(conf.par)} (${f.c.bonus} réduction${f.c.bonus>1?"s":""} à utiliser)</label>`;
     if(!f.c&&conf.par)h+=`<input id="cpar" inputmode="tel" placeholder="Envoyé par un client ? Son numéro (facultatif)" value="${esc(cpar)}" style="grid-column:1/-1">`;
     if(!f.c||!f.c.ok)h+=`<label class="consent"><input type="checkbox" id="cok" ${cok?"checked":""}> Le client accepte de recevoir les messages du salon sur WhatsApp (promos, rappels)</label>`;}
+  if(!n&&panier.length)h+=`<p class="note" style="grid-column:1/-1;margin:0">Sans numéro de téléphone, la visite <b>ne compte pas</b> sur la carte fidélité.</p>`;
   h+=`</div>`;
   const v=[...jour.ventes].reverse();
   h+=`<h2>Passages du jour <small>${(n=>n+" client"+(n>1?"s":""))(stats(jour).n)}</small></h2><div class="liste">`;
-  h+=v.length?v.map(x=>`<div class="li${x.annule?" barre":""}"><span class="h num">${H(x.t)}</span><span class="d">${x.items.map(i=>(i.q>1?i.q+"× ":"")+esc(i.n)).join(", ")}<small>${esc(coifN(x.coif))} · ${x.pay}${x.nom?" · "+esc(x.nom):""}${x.remise?(x.parr?" · parrainage":" · fidélité"):""}</small></span><span class="m num">${F(x.total)}</span>${x.annule?"":`<button class="mini${confAnnul===x.t?" danger":""}" data-annul="${x.t}">${confAnnul===x.t?"Confirmer":"Annuler"}</button>`}</div>`).join(""):`<div class="vide">Aucun passage encore. Choisissez le coiffeur puis la prestation.</div>`;
+  h+=v.length?v.map(x=>`<div class="li${x.annule?" barre":""}"><span class="h num">${H(x.t)}</span><span class="d">${x.items.map(i=>(i.q>1?i.q+"× ":"")+esc(i.n)).join(", ")}<small>${esc(coifN(x.coif))} · ${x.pay}${x.nom?" · "+esc(x.nom):""}${x.remise?(x.parr?" · parrainage":" · fidélité"):""}</small></span><span class="m num">${F(x.total)}</span>${x.annule?"":`${x.tel?"":`<button class="mini fort" data-lier="${x.t}">+ N°</button>`}<button class="mini${confAnnul===x.t?" danger":""}" data-annul="${x.t}">${confAnnul===x.t?"Confirmer":"Annuler"}</button>`}</div>${lierT===x.t?`<div class="form" style="padding:8px 0 12px;border-bottom:1px solid var(--ligne)"><input id="lierTel" inputmode="tel" placeholder="Téléphone du client"><input id="lierNom" placeholder="Prénom" value="${esc(x.nom||"")}"><button class="btn full" data-lierok="${x.t}">Compter cette visite pour ce client</button></div>`:""}`).join(""):`<div class="vide">Aucun passage encore. Choisissez le coiffeur puis la prestation.</div>`;
   return h+"</div>";
 }
 
@@ -669,6 +675,11 @@ document.addEventListener("click",e=>{
   if("addav" in a){const m=+document.getElementById("avM").value;if(!(m>0)){toast("Indiquez le montant");return}jour.av=jour.av||[];jour.av.push({t:Date.now(),coif:document.getElementById("avC").value,m,note:document.getElementById("avN").value.trim(),esp:document.getElementById("avE").checked});saveJ();toast("Avance notée · "+F(m));return render()}
   if(a.delav!==undefined){if(confDel!=="a:"+a.delav){confDel="a:"+a.delav;return render()}jour.av.splice(+a.delav,1);saveJ();confDel=null;toast("Avance supprimée");return render()}
   if("copresa" in a){const l=lienResa();try{navigator.clipboard.writeText(l).then(()=>toast("Lien copié"),()=>prompt("Copiez le lien :",l))}catch(x){prompt("Copiez le lien :",l)}return}
+  if(a.lier){lierT=lierT===+a.lier?null:+a.lier;return render()}
+  if(a.lierok){const x=jour.ventes.find(v=>v.t===+a.lierok),tn=telNet(document.getElementById("lierTel").value),nm=document.getElementById("lierNom").value.trim();
+    if(!x||x.tel){lierT=null;return render()}if(tn.length!==8){toast("Numéro à 8 chiffres");return}
+    clients=lire("bbs3:cli",{});const c=clients[tn]||{nom:"",v:0,prem:x.t};c.v=(c.v||0)+1;c.der=Math.max(c.der||0,x.t);c.dep=(c.dep||0)+x.total;c.coif=x.coif;if(nm)c.nom=nm;clients[tn]=c;
+    x.tel=tn;if(nm)x.nom=nm;saveC();saveJ();lierT=null;toast("Visite comptée · "+(c.nom||tn)+" : "+c.v+" visite"+(c.v>1?"s":""));return render()}
   if(a.filtre){filtreC=a.filtre;return render()}
   if("nomerci" in a){dernier=null;dernierPar=null;return render()}
   if(a.savefiche){const c=clients[a.savefiche],an=lireAnniv(document.getElementById("fA").value);if(an===null){toast("Anniversaire : écrire jj/mm");return}
@@ -692,7 +703,7 @@ document.addEventListener("click",e=>{
   if(a.moins!==undefined){const i=panier[+a.moins];i.q--;if(!i.q)panier.splice(+a.moins,1);if(!panier.some(x=>x.k==="s"))offrir=false;return render()}
   if(a.paie){paie=a.paie;return rPanier()}
   if("vider" in a){panier=[];offrir=false;rdvLie=null;return render()}
-  if("encaisser" in a){
+  if("encaisser" in a){clients=lire("bbs3:cli",clients);
     const tot=totalPanier(),remise=panier.reduce((x,i)=>x+i.p*i.q,0)-tot,tn=telNet(ctel);
     const pt=telNet(cpar),nouv=tn.length===8&&!clients[tn],parOk=nouv&&pt.length===8&&pt!==tn&&clients[pt];
     if(cpar.trim()&&nouv&&!parOk){toast("Numéro du parrain inconnu : vérifiez ou effacez-le");return}
