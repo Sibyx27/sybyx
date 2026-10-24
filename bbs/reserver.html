@@ -2,13 +2,19 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-lsU63kNgsJIdoLc1Ei+R5OjaqmatMxnad/AS67wQTF8='; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>Réserver</title>
 <meta property="og:title" content="Réserver ma coupe">
 <meta property="og:description" content="Choisissez votre coupe et votre heure, puis envoyez votre demande sur WhatsApp.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:200 800;font-display:swap;src:url(polices/bricolage-grotesque-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:200 800;font-display:swap;src:url(polices/bricolage-grotesque-latin-ext-wght-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Figtree";font-style:normal;font-weight:300 900;font-display:swap;src:url(polices/figtree-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Figtree";font-style:normal;font-weight:300 900;font-display:swap;src:url(polices/figtree-latin-ext-wght-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+</style>
 <style>
 :root{--fond:#F3F4F6;--surface:#FFFFFF;--ligne:#DADDE4;--encre:#121318;--encre-2:#474B57;--encre-3:#878C99;--rouge:#C8102E;--bleu:#1D4E89;--ok:#1E8A4C;
   --display:"Bricolage Grotesque","Arial Narrow",system-ui,sans-serif;--body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -50,8 +56,12 @@ input{width:100%;padding:12px;border:1px solid var(--ligne);border-radius:8px;ba
 <script>
 // Page publique de réservation. Toutes les infos du salon sont dans le lien (après le #) : aucun serveur, aucune donnée gardée.
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const F=n=>(n||0).toLocaleString("fr-FR").replace(/ | /g," ")+" F";
+const F=n=>(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ")+" F";
 let D=null;try{D=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1).replace(/-/g,"+").replace(/_/g,"/")))))}catch(e){}
+const S=(x,n)=>String(x??"").slice(0,n),N=(x,a,b,d)=>{x=parseInt(x,10);return isNaN(x)?d:Math.min(b,Math.max(a,x))};
+// Tout ce qui vient du lien est vérifié : textes coupés et échappés, nombres bornés, heures au bon format.
+if(D&&typeof D==="object"&&!Array.isArray(D)){const H=x=>/^([01]\d|2[0-3]):[0-5]\d$/.test(x||"")?x:null;D={n:S(D.n,60),w:/^\d{8}$/.test(D.w||"")?D.w:"",o:H(D.o)||"09:00",f:H(D.f)||"21:00",
+  c:(Array.isArray(D.c)?D.c:[]).slice(0,20).map(x=>S(x,30)).filter(Boolean),s:(Array.isArray(D.s)?D.s:[]).slice(0,80).filter(Array.isArray).map(x=>[S(x[0],40),S(x[1],60),N(x[2],0,1e7,0)]).filter(x=>x[1])}}else D=null;
 const st={s:null,j:0,h:null,c:"",nom:""};
 const JOURS=Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()+i);return d});
 const lib=(d,i)=>i===0?"Aujourd'hui":i===1?"Demain":d.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric"}).replace(".","");

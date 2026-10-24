@@ -2,6 +2,8 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nqNMLqGXMbk9+qCrXgAhPHAGkaEHoP6Cl2EF21FwtRs=' 'sha256-f6SsOarPJbo6R9crN5dGEQIhpz99yGkHepL751FsAX8='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#121318">
@@ -20,8 +22,12 @@
 </script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:200 800;font-display:swap;src:url(polices/bricolage-grotesque-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:200 800;font-display:swap;src:url(polices/bricolage-grotesque-latin-ext-wght-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Figtree";font-style:normal;font-weight:300 900;font-display:swap;src:url(polices/figtree-latin-wght-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Figtree";font-style:normal;font-weight:300 900;font-display:swap;src:url(polices/figtree-latin-ext-wght-normal.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+</style>
 <style>
 /* Layout : appli de salon une colonne + barre d'onglets fixée en bas, papier porcelaine / encre marine / rouge enseigne de barbier */
 :root{
@@ -222,7 +228,7 @@ function effacerTout(){try{Object.keys(localStorage).filter(k=>k.startsWith("bbs
 
 const cleJ=(d=new Date())=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-const F=n=>(n||0).toLocaleString("fr-FR").replace(/ | /g," ")+" F";
+const F=n=>(Number(n)||0).toLocaleString("fr-FR").replace(/ | /g," ")+" F";
 const H=t=>new Date(t).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const telNet=t=>String(t||"").replace(/\D/g,"").slice(-8);
@@ -316,7 +322,7 @@ function semerDemo(){
 let vue="caisse", ouvert=false, onglet="bilan";
 let panier=[], coif=null, paie="Espèces", ctel="", cnom="", offrir=false, rdvLie=null;
 let confAnnul=null, confReset=false, recherche="";
-let sansNum=null, lierT=null, cpar="", cbon=false, dernierPar=null, qCoif="", confDel=null, editProd=null, etapeA=1, cok=false, cann="", dernier=null, ficheTel=null, filtreC="tous", confSup=false, impData=null;
+let annulCode=null, sansNum=null, lierT=null, cpar="", cbon=false, dernierPar=null, qCoif="", confDel=null, editProd=null, etapeA=1, cok=false, cann="", dernier=null, ficheTel=null, filtreC="tous", confSup=false, impData=null;
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.k);toast.k=setTimeout(()=>t.hidden=true,1800)}
 const actifs=a=>a.filter(x=>!x.off);
 const coifN=id=>(conf.coiffeurs.find(c=>c.id===id)||{n:"?"}).n;
@@ -324,6 +330,22 @@ const svc=id=>conf.services.find(s=>s.id===id);
 
 // ———— CRM : base clients et messages WhatsApp en 1 clic ————
 const JOUR=864e5;
+// ———— Sécurité du code gérant ————
+// Le code n'est jamais gardé tel quel : on garde une « empreinte » (PBKDF2-SHA256), impossible à retourner en code.
+const b64=a=>btoa(String.fromCharCode(...new Uint8Array(a))), unb64=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));
+async function deriver(code,sel,n){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(String(code)),"PBKDF2",false,["deriveBits"]);return b64(await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:unb64(sel),iterations:n},k,256))}
+const TOURS=150000;
+async function definirCode(v){const sel=b64(crypto.getRandomValues(new Uint8Array(16))),h=await deriver(v,sel,TOURS);conf.codeS=sel;conf.codeH=h;conf.codeCourt=String(v).length<6;conf.codeDefaut=String(v)==="1234";delete conf.code;saveConf()}
+let pretCode=Promise.resolve();
+async function verifierCode(v){await pretCode;if(!conf.codeH||!conf.codeS)return false;return (await deriver(v,conf.codeS,TOURS))===conf.codeH}
+if(conf.code!=null)pretCode=definirCode(String(conf.code)); // ancien code en clair → empreinte
+function blocageRestant(){return Math.max(0,(conf.bloque||0)-Date.now())}
+function essaiRate(){conf.essais=(conf.essais||0)+1;if(conf.essais%5===0)conf.bloque=Date.now()+5*60000*Math.pow(2,conf.essais/5-1);saveConf()}
+const masque=t=>{t=String(t||"");return t.length===8?t.slice(0,2)+" •• •• "+t.slice(-2):t};
+// Verrouillage automatique de l'espace gérant après 5 minutes sans toucher l'écran
+let derniereAction=Date.now();
+["pointerdown","keydown"].forEach(ev=>addEventListener(ev,()=>derniereAction=Date.now(),true));
+setInterval(()=>{if(ouvert&&Date.now()-derniereAction>5*60000){ouvert=false;if(vue==="gerant"||vue==="clients"){if(vue==="gerant")vue="caisse";render()}toast("Espace gérant verrouillé")}},15000);
 const listeCli=()=>Object.entries(clients).map(([t,c])=>({t,...c}));
 const prenom=c=>((c&&c.nom)||"").replace(" (exemple)","").trim().split(/\s+/)[0]||"";
 const dateC=t=>new Date(t).toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:new Date(t).getFullYear()===new Date().getFullYear()?undefined:"numeric"});
@@ -343,7 +365,7 @@ function texteMsg(k,c){if(k==="promo")return remplir("Bonjour {prenom} !\n",c)+c
 const b64u=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 const BASE=location.href.split(/[?#]/)[0].replace(/[^/]*$/,"");
 const lienResa=()=>BASE+"reserver.html#"+b64u({n:conf.salon,w:conf.tel,o:conf.ouv||"09:00",f:conf.ferm||"21:00",c:actifs(conf.coiffeurs).map(c=>c.n).filter(n=>n&&n!=="?"),s:conf.services.map(x=>[x.cat||"",x.n,x.p])});
-const lienCarte=c=>BASE+"carte.html#"+b64u({n:conf.salon,p:prenom(c),v:c.v||0,f:conf.fid,b:c.bonus||0,r:conf.par||0,w:conf.tel||"",t:c.t||""});
+const lienCarte=c=>BASE+"carte.html#"+b64u({n:conf.salon,p:prenom(c),v:c.v||0,f:conf.fid,b:c.bonus||0,r:conf.par||0,w:conf.tel||""});
 const waLien=(t,txt)=>"https://wa.me/223"+t+(txt?"?text="+encodeURIComponent(txt):"");
 function boutonWA(k,c){const m=c.msg||{},fait=k==="promo"?!!(m.promo&&conf.promo&&m.promo[conf.promo.id]):k==="anniv"?m.anniv===new Date().getFullYear():k==="absent"?m.absent>(c.der||0):false;
   return`<a class="wa${fait?" fait":""}" href="${waLien(c.t,texteMsg(k,c))}" target="_blank" rel="noopener" data-env="${k}|${c.t}">${fait?"✓ Envoyé":"Envoyer"}</a>`}
@@ -372,9 +394,27 @@ function chargerPhotos(){const z=document.getElementById("photos");if(!z)return;
   z.innerHTML=l.length?l.map(x=>`<button class="ph" data-phvoir="${x.id}" aria-label="Voir la photo du ${dateC(x.t)}"><img src="${x.data}" alt="Coupe du ${dateC(x.t)}"><span>${dateC(x.t)}</span></button>`).join(""):`<div class="vide">Pas encore de photo. Prenez la coupe en photo après la visite : la prochaine fois, le client dira « comme la dernière fois ».</div>`})}
 function voirPhoto(id){phReq("readonly",st=>st.get(id)).then(x=>{if(!x)return;const o=document.createElement("div");o.className="voile";o.innerHTML=`<img src="${x.data}" alt="Photo de la coupe"><div class="row"><button class="mini" data-phfermer>Fermer</button><button class="mini danger" data-phsuppr="${x.id}">Supprimer la photo</button></div>`;document.body.appendChild(o)})}
 
-async function telechargerSauvegarde(){const data={};try{Object.keys(localStorage).filter(k=>k.startsWith("bbs3:")).forEach(k=>data[k]=localStorage.getItem(k))}catch(e){}
-  const photos=await phTout();
-  const b=new Blob([JSON.stringify({app:"bbs",version:2,date:Date.now(),data,photos})],{type:"application/json"}),a=document.createElement("a");
+async function cleSauv(mdp,sel){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(mdp),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",hash:"SHA-256",salt:sel,iterations:TOURS},k,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+async function chiffrer(obj,mdp){const sel=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),k=await cleSauv(mdp,sel);
+  const c=await crypto.subtle.encrypt({name:"AES-GCM",iv},k,new TextEncoder().encode(JSON.stringify(obj)));return{app:"bbs",version:3,chiffre:true,date:Date.now(),sel:b64(sel),iv:b64(iv),donnees:b64(c)}}
+async function dechiffrer(o,mdp){const k=await cleSauv(mdp,unb64(o.sel));const c=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(o.iv)},k,unb64(o.donnees));return JSON.parse(new TextDecoder().decode(c))}
+// ———— 7. Contrôle d'un fichier de sauvegarde avant de l'accepter ————
+const CLE_OK=/^bbs3:(conf|cli|rdv|theme|j:\d{4}-\d{2}-\d{2})$/;
+function controlerSauvegarde(o){if(!o||typeof o!=="object"||typeof o.data!=="object"||!o.data)throw new Error("format");
+  const data={};Object.entries(o.data).forEach(([k,v])=>{if(!CLE_OK.test(k))return;if(typeof v!=="string"||v.length>15e6)throw new Error("taille");JSON.parse(v);data[k]=v});
+  if(!data["bbs3:conf"])throw new Error("conf");
+  {const cf=JSON.parse(data["bbs3:conf"]);if(!cf||typeof cf!=="object"||!Array.isArray(cf.coiffeurs)||!Array.isArray(cf.services)||!Array.isArray(cf.produits)||!cf.coiffeurs.length)throw new Error("conf incomplète");
+    cf.salon=String(cf.salon||"Mon salon").slice(0,60);cf.tel=/^\d{8}$/.test(cf.tel||"")?cf.tel:"";cf.fid=Math.min(50,Math.max(2,parseInt(cf.fid)||10));cf.par=Math.max(0,parseInt(cf.par)||0);data["bbs3:conf"]=JSON.stringify(cf)}
+  const cl=JSON.parse(data["bbs3:cli"]||"{}"),propre={};if(typeof cl!=="object"||Array.isArray(cl))throw new Error("clients");
+  Object.entries(cl).forEach(([t,c])=>{if(!/^\d{8}$/.test(t)||!c||typeof c!=="object")return;propre[t]={...c,nom:String(c.nom||"").slice(0,80),v:Math.max(0,parseInt(c.v)||0),dep:Math.max(0,Number(c.dep)||0),der:Number(c.der)||null,ok:c.ok===true,
+    anniv:/^\d{2}-\d{2}$/.test(c.anniv||"")?c.anniv:"",note:String(c.note||"").slice(0,1000),bonus:Math.max(0,parseInt(c.bonus)||0),filleuls:Math.max(0,parseInt(c.filleuls)||0),par:/^\d{8}$/.test(c.par||"")?c.par:undefined}});
+  data["bbs3:cli"]=JSON.stringify(propre);
+  const photos=(Array.isArray(o.photos)?o.photos:[]).filter(x=>x&&typeof x.id==="string"&&/^\d{8}$/.test(x.tel)&&typeof x.data==="string"&&x.data.startsWith("data:image/jpeg;base64,")&&x.data.length<3e6).map(x=>({id:x.id.slice(0,40),tel:x.tel,t:Number(x.t)||Date.now(),data:x.data}));
+  return{date:Number(o.date)||Date.now(),data,photos,ancien:!o.chiffre}}
+
+async function telechargerSauvegarde(mdp){const data={};try{Object.keys(localStorage).filter(k=>k.startsWith("bbs3:")).forEach(k=>data[k]=localStorage.getItem(k))}catch(e){}
+  const photos=await phTout(),fichier=await chiffrer({data,photos,date:Date.now()},mdp);
+  const b=new Blob([JSON.stringify(fichier)],{type:"application/json"}),a=document.createElement("a");
   a.href=URL.createObjectURL(b);a.download=(conf.salon||"salon").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")+"-sauvegarde-"+cleJ()+".json";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
 
 function totalPanier(){let t=panier.reduce((a,i)=>a+i.p*i.q,0);if(offrir){const s=panier.filter(i=>i.k==="s");if(s.length)t-=Math.min(...s.map(i=>i.p))}if(cbon&&conf.par)t-=Math.min(t,conf.par);return t}
@@ -385,6 +425,9 @@ function joursDuMois(){const r=[],d=new Date(),n=d.getDate();for(let i=1;i<=n;i+
 function moisCoif(){const r={};actifs(conf.coiffeurs).forEach(c=>r[c.id]={ca:0,av:0,liste:[]});
   joursDuMois().forEach(j=>{const st=stats(j);Object.entries(st.parC).forEach(([id,v])=>{if(r[id])r[id].ca+=v.ca});(j.av||[]).forEach(a=>{if(r[a.coif]){r[a.coif].av+=a.m;r[a.coif].liste.push(a)}})});
   return r}
+function annuler(t,par){const v=jour.ventes.find(x=>x.t===t);if(!v||v.annule)return;v.annule=true;v.annuleA=Date.now();v.annulePar=par;
+  v.items.filter(i=>i.k==="p").forEach(i=>{const p=conf.produits.find(x=>x.id===i.id);if(p&&p.stock!=null)p.stock+=i.q});saveConf();
+  if(v.tel&&clients[v.tel]){clients[v.tel].v=Math.max(0,(clients[v.tel].v||0)-1);saveC()}saveJ();toast("Passage annulé")}
 function stats(j){
   const v=j.ventes.filter(x=>!x.annule), ca=v.reduce((a,x)=>a+x.total,0), dep=j.dep.reduce((a,x)=>a+x.m,0);
   const pay={}, parC={}; let serv=0, prod=0, cout=0, nCli=0;
@@ -441,7 +484,7 @@ function blocClient(){let h="";
 function suggestions(){const d=String(ctel||"").replace(/\D/g,""),q=(cnom||"").trim().toLowerCase();if(d.length===8)return"";
   let l=[];if(d.length>=3)l=listeCli().filter(c=>c.t.includes(d.slice(-8)));else if(q.length>=2)l=listeCli().filter(c=>(c.nom||"").toLowerCase().includes(q));
   l=l.sort((a,b)=>(b.der||0)-(a.der||0)).slice(0,4);
-  return l.length?`<span class="sous">Déjà client ?</span>`+l.map(c=>`<button class="chip" data-pick="${c.t}">${esc(c.nom||"Sans nom")} · ${esc(c.t)}</button>`).join(""):""}
+  return l.length?`<span class="sous">Déjà client ?</span>`+l.map(c=>`<button class="chip" data-pick="${c.t}">${esc(c.nom||"Sans nom")} · ${esc(masque(c.t))}</button>`).join(""):""}
 function vCaisse(){
   let h=alerteStock();
   const f=fidelite(ctel);
@@ -457,7 +500,7 @@ function vCaisse(){
     return`<button class="tuile" data-add="p:${p.id}" ${rest<=0?"disabled":""}><span class="n">${esc(p.n)}</span><span class="p num">${p.p.toLocaleString("fr-FR")}</span><span class="s${b?" bas":""}">${inconnu?"Stock à compter":p.stock<=0?"Rupture":b?"Plus que "+p.stock:"Stock : "+p.stock}</span>${q?`<span class="q">${q}</span>`:""}</button>`}).join("")}</div>`;
   const v=[...jour.ventes].reverse();
   h+=`<h2>Passages du jour <small>${(n=>n+" client"+(n>1?"s":""))(stats(jour).n)}</small></h2><div class="liste">`;
-  h+=v.length?v.map(x=>`<div class="li${x.annule?" barre":""}"><span class="h num">${H(x.t)}</span><span class="d">${x.items.map(i=>(i.q>1?i.q+"× ":"")+esc(i.n)).join(", ")}<small>${esc(coifN(x.coif))} · ${x.pay}${x.nom?" · "+esc(x.nom):""}${x.remise?(x.parr?" · parrainage":" · fidélité"):""}</small></span><span class="m num">${F(x.total)}</span>${x.annule?"":`${x.tel?"":`<button class="mini fort" data-lier="${x.t}">+ N°</button>`}<button class="mini${confAnnul===x.t?" danger":""}" data-annul="${x.t}">${confAnnul===x.t?"Confirmer":"Annuler"}</button>`}</div>${lierT===x.t?`<div class="form" style="padding:8px 0 12px;border-bottom:1px solid var(--ligne)"><input id="lierTel" inputmode="tel" placeholder="Téléphone du client"><input id="lierNom" placeholder="Prénom" value="${esc(x.nom||"")}"><button class="btn full" data-lierok="${x.t}">Compter cette visite pour ce client</button></div>`:""}`).join(""):`<div class="vide">Aucun passage encore. Choisissez le coiffeur puis la prestation.</div>`;
+  h+=v.length?v.map(x=>`<div class="li${x.annule?" barre":""}"><span class="h num">${H(x.t)}</span><span class="d">${x.items.map(i=>(i.q>1?i.q+"× ":"")+esc(i.n)).join(", ")}<small>${esc(coifN(x.coif))} · ${esc(x.pay)}${x.nom?" · "+esc(x.nom):""}${x.remise?(x.parr?" · parrainage":" · fidélité"):""}</small></span><span class="m num">${F(x.total)}</span>${x.annule?"":`${x.tel?"":`<button class="mini fort" data-lier="${x.t}">+ N°</button>`}<button class="mini${confAnnul===x.t?" danger":""}" data-annul="${x.t}">${confAnnul===x.t?"Confirmer":"Annuler"}</button>`}</div>${annulCode===x.t?`<div class="form" style="padding:8px 0 12px;border-bottom:1px solid var(--ligne)"><input id="annCode" type="password" inputmode="numeric" autocomplete="off" placeholder="Code gérant pour annuler"><button class="btn" data-annulok="${x.t}">Annuler le passage</button><p class="note full" style="margin:0">Après 2 minutes, seule la personne qui a le code gérant peut annuler.</p></div>`:""}${lierT===x.t?`<div class="form" style="padding:8px 0 12px;border-bottom:1px solid var(--ligne)"><input id="lierTel" inputmode="tel" placeholder="Téléphone du client"><input id="lierNom" placeholder="Prénom" value="${esc(x.nom||"")}"><button class="btn full" data-lierok="${x.t}">Compter cette visite pour ce client</button></div>`:""}`).join(""):`<div class="vide">Aucun passage encore. Choisissez le coiffeur puis la prestation.</div>`;
   return h+"</div>";
 }
 
@@ -512,26 +555,27 @@ function vClients(){
   let h=`<h2>Clients <small>${tous.length} enregistrés · ${tous.filter(c=>c.ok).length} acceptent les messages</small></h2><input id="cherche" placeholder="Chercher un nom ou un numéro" value="${esc(recherche)}">`;
   h+=`<div class="chips" style="margin-top:8px">${Object.entries(FI).map(([k,l])=>`<button class="chip" data-filtre="${k}" aria-pressed="${k===filtreC}">${l}</button>`).join("")}</div>`;
   h+=`<p class="note">Touchez un client pour voir sa fiche. La ${conf.fid}e visite est offerte.</p><div class="liste" style="margin-top:8px">`;
-  h+=arr.length?arr.map(c=>{const r=(c.v||0)%conf.fid;return`<button class="li clic" data-fiche="${c.t}"><span class="d">${esc(c.nom||"Sans nom")} ${c.ok?"":`<span class="pill neutre">sans accord</span>`}<small>${esc(c.t)} · ${c.der?"dernière visite "+dateC(c.der):"jamais venu"}${c.dep?" · "+F(c.dep):""}</small></span><span class="acts" style="flex-direction:column;align-items:flex-end;gap:4px"><span class="tampons">${Array.from({length:conf.fid},(_,i)=>`<i class="${i<r?"on":""}"></i>`).join("")}</span><span class="sous">${c.v||0} visite${(c.v||0)>1?"s":""}${r===conf.fid-1?" · <b style=\"color:var(--ok)\">prochaine offerte</b>":""}</span></span></button>`}).join(""):`<div class="vide">Aucun client trouvé.</div>`;
+  h+=arr.length?arr.map(c=>{const r=(c.v||0)%conf.fid;return`<button class="li clic" data-fiche="${c.t}"><span class="d">${esc(c.nom||"Sans nom")} ${c.ok?"":`<span class="pill neutre">sans accord</span>`}<small>${esc(ouvert?c.t:masque(c.t))} · ${c.der?"dernière visite "+dateC(c.der):"jamais venu"}${c.dep&&ouvert?" · "+F(c.dep):""}</small></span><span class="acts" style="flex-direction:column;align-items:flex-end;gap:4px"><span class="tampons">${Array.from({length:conf.fid},(_,i)=>`<i class="${i<r?"on":""}"></i>`).join("")}</span><span class="sous">${c.v||0} visite${(c.v||0)>1?"s":""}${r===conf.fid-1?" · <b style=\"color:var(--ok)\">prochaine offerte</b>":""}</span></span></button>`}).join(""):`<div class="vide">Aucun client trouvé.</div>`;
   h+=`</div><h2>Ajouter un client</h2><p class="note">Pour un client qui passe maintenant, utilisez plutôt la case Client de la <b>caisse</b> : la visite est comptée toute seule.</p><div class="form"><input id="ncT" inputmode="tel" placeholder="Téléphone (8 chiffres)"><input id="ncN" placeholder="Prénom"><input id="ncA" inputmode="numeric" placeholder="Anniversaire jj/mm (facultatif)"><input id="ncV" type="number" min="0" inputmode="numeric" placeholder="Visites déjà faites (facultatif)"><label class="consent"><input type="checkbox" id="ncO"> Accepte de recevoir les messages du salon sur WhatsApp</label><button class="btn full" data-addcli>Ajouter</button></div>`;
   return h;
 }
 function vFiche(t){
   const c={t,...clients[t]},hist=historique(t);
-  let h=`<button class="mini" data-fiche="" style="margin-top:12px">← Tous les clients</button><h2>${esc(c.nom||"Sans nom")} <small>${esc(t)}</small></h2>`;
-  h+=`<div class="kpis"><div class="kpi"><div class="l">Visites</div><div class="v num">${c.v||0}</div></div><div class="kpi"><div class="l">Total dépensé</div><div class="v num">${F(c.dep||0)}</div></div>
+  let h=`<button class="mini" data-fiche="" style="margin-top:12px">← Tous les clients</button><h2>${esc(c.nom||"Sans nom")} <small>${esc(ouvert?t:masque(t))}</small></h2>`;
+  h+=`<div class="kpis"><div class="kpi"><div class="l">Visites</div><div class="v num">${c.v||0}</div></div><div class="kpi"><div class="l">Total dépensé</div><div class="v num">${ouvert?F(c.dep||0):"•••"}</div></div>
     <div class="kpi"><div class="l">Dernière visite</div><div class="v" style="font-size:17px">${c.der?dateC(c.der):"—"}</div></div><div class="kpi"><div class="l">Coiffeur habituel</div><div class="v" style="font-size:17px">${c.coif?esc(coifN(c.coif)):"—"}</div></div></div>`;
   if(c.filleuls||c.par||c.bonus)h+=`<p class="note">${c.filleuls?`A amené <b>${c.filleuls}</b> client${c.filleuls>1?"s":""}. `:""}${c.bonus?`<b style="color:var(--ok)">${c.bonus} réduction${c.bonus>1?"s":""} de ${F(conf.par)}</b> à utiliser. `:""}${c.par&&clients[c.par]?`Envoyé par ${esc(clients[c.par].nom||c.par)}.`:""}</p>`;
-  h+=`<div class="acts" style="justify-content:flex-start;margin-top:12px"><a class="wa" href="${waLien(t)}" target="_blank" rel="noopener">Écrire sur WhatsApp</a><a class="mini" href="tel:+223${t}">Appeler</a><a class="mini" href="${waLien(t,remplir("Bonjour {prenom}, voici ta carte fidélité {salon} : {carte}",c))}" target="_blank" rel="noopener">Envoyer sa carte</a></div>`;
-  h+=`<h2>Infos</h2><div class="form"><input id="fN" class="full" placeholder="Prénom et nom" value="${esc(c.nom||"")}"><input id="fA" class="full" inputmode="numeric" placeholder="Anniversaire jj/mm" value="${c.anniv?esc(c.anniv.split("-").reverse().join("/")):""}">
+  if(ouvert)h+=`<div class="acts" style="justify-content:flex-start;margin-top:12px"><a class="wa" href="${waLien(t)}" target="_blank" rel="noopener">Écrire sur WhatsApp</a><a class="mini" href="tel:+223${t}">Appeler</a><a class="mini" href="${waLien(t,remplir("Bonjour {prenom}, voici ta carte fidélité {salon} : {carte}",c))}" target="_blank" rel="noopener">Envoyer sa carte</a></div>`;
+  if(!ouvert)h+=`<p class="note" style="margin-top:14px">🔒 Numéro complet, dépenses, modification et suppression : ouvrez l'espace <b>Gérant</b> avec le code.</p>`;
+  else h+=`<h2>Infos</h2><div class="form"><input id="fN" class="full" placeholder="Prénom et nom" value="${esc(c.nom||"")}"><input id="fA" class="full" inputmode="numeric" placeholder="Anniversaire jj/mm" value="${c.anniv?esc(c.anniv.split("-").reverse().join("/")):""}">
     <label class="consent"><input type="checkbox" id="fO" ${c.ok?"checked":""}> Accepte de recevoir les messages du salon (décocher si le client a répondu STOP)</label>
     <textarea id="fNote" class="full" placeholder="Notes : coupe préférée, remarques…">${esc(c.note||"")}</textarea><button class="btn full" data-savefiche="${t}">Enregistrer</button></div>`;
   const ps=passagesSansNumero(c);
-  if(ps.length)h+=`<div class="merci" style="display:block"><b>${ps.length} passage${ps.length>1?"s":""} encaissé${ps.length>1?"s":""} sans numéro au nom « ${esc(prenom(c)||c.nom)} »</b><div class="sous" style="margin:2px 0 8px">Si c'était bien ce client, touchez « C'est lui » : la visite est ajoutée à sa carte.</div><div class="liste">`+ps.slice(0,10).map(({k,v})=>`<div class="li"><span class="h num">${dateC(v.t)}</span><span class="d">${v.items.map(i=>esc(i.n)).join(", ")}<small>${esc(coifN(v.coif))} · ${F(v.total)}</small></span><button class="mini fort" data-cestlui="${k}|${v.t}">C'est lui</button></div>`).join("")+`</div></div>`;
+  if(ps.length&&ouvert)h+=`<div class="merci" style="display:block"><b>${ps.length} passage${ps.length>1?"s":""} encaissé${ps.length>1?"s":""} sans numéro au nom « ${esc(prenom(c)||c.nom)} »</b><div class="sous" style="margin:2px 0 8px">Si c'était bien ce client, touchez « C'est lui » : la visite est ajoutée à sa carte.</div><div class="liste">`+ps.slice(0,10).map(({k,v})=>`<div class="li"><span class="h num">${dateC(v.t)}</span><span class="d">${v.items.map(i=>esc(i.n)).join(", ")}<small>${esc(coifN(v.coif))} · ${F(v.total)}</small></span><button class="mini fort" data-cestlui="${k}|${v.t}">C'est lui</button></div>`).join("")+`</div></div>`;
   h+=`<h2>Visites</h2>`+(ouvert?`<div class="row"><button class="mini" data-vis="-1" aria-label="Retirer une visite">−1</button><b class="num" style="font-size:22px;min-width:40px;text-align:center">${c.v||0}</b><button class="mini" data-vis="1" aria-label="Ajouter une visite">+1</button><span class="sous">Correction par le gérant (ex. ancienne carte papier)</span></div>`:`<p class="note">Il manque des visites ? Le gérant peut les corriger ici après avoir ouvert l'espace Gérant avec son code.</p>`);
   h+=`<h2>Photos des coupes</h2><label class="btn" for="phIn" style="display:block;text-align:center;cursor:pointer" data-phpour="${t}">📷 Prendre une photo</label><div id="photos" class="photos" data-tel="${t}"></div>`;
-  h+=`<h2>Dernières visites <small>${hist.length}</small></h2><div class="liste">`+(hist.length?hist.map(v=>`<div class="li"><span class="h num">${dateC(v.t)}</span><span class="d">${v.items.map(i=>(i.q>1?i.q+"× ":"")+esc(i.n)).join(", ")}<small>${esc(coifN(v.coif))} · ${v.pay}</small></span><span class="m num">${F(v.total)}</span></div>`).join(""):`<div class="vide">Aucune visite enregistrée sur cette tablette.</div>`)+`</div>`;
-  h+=`<p class="note" style="margin-top:22px">Le client demande à être effacé ? Supprimez sa fiche : son nom et son numéro disparaissent (les montants des ventes restent dans les bilans).</p><button class="mini danger" data-supcli="${t}">${confSup?"Confirmer la suppression":"Supprimer ce client"}</button>`;
+  h+=`<h2>Dernières visites <small>${hist.length}</small></h2><div class="liste">`+(hist.length?hist.map(v=>`<div class="li"><span class="h num">${dateC(v.t)}</span><span class="d">${v.items.map(i=>(i.q>1?i.q+"× ":"")+esc(i.n)).join(", ")}<small>${esc(coifN(v.coif))} · ${esc(v.pay)}</small></span><span class="m num">${F(v.total)}</span></div>`).join(""):`<div class="vide">Aucune visite enregistrée sur cette tablette.</div>`)+`</div>`;
+  if(ouvert)h+=`<p class="note" style="margin-top:22px">Le client demande à être effacé ? Supprimez sa fiche : son nom et son numéro disparaissent (les montants des ventes restent dans les bilans).</p><button class="mini danger" data-supcli="${t}">${confSup?"Confirmer la suppression":"Supprimer ce client"}</button>`;
   return h;
 }
 
@@ -539,17 +583,19 @@ function vAssistant(){
   const pas=`<p class="sous" style="margin-top:18px">Étape ${etapeA} sur 3</p>`;
   if(etapeA===1)return pas+`<h2>Bienvenue ! Votre salon</h2><div class="form"><input id="waSalon" class="full" placeholder="Nom du salon" value="${esc(conf.salon||"")}"><input id="waTel" class="full" inputmode="tel" placeholder="Numéro WhatsApp du salon (facultatif)" value="${esc(conf.tel||"")}"><button class="go full" data-assist="1">Suivant</button></div><p class="note">Le numéro WhatsApp sert à la page de réservation. Il se change plus tard dans Réglages.</p>`;
   if(etapeA===2)return pas+`<h2>Vos coiffeurs</h2><div class="form"><div id="waListe" class="full" style="display:flex;flex-direction:column;gap:8px">${actifs(conf.coiffeurs).map(c=>`<input data-wac value="${esc(c.n)}" placeholder="Nom du coiffeur">`).join("")}</div><button class="btn full" data-assist="plus">+ Un autre coiffeur</button><button class="sec" data-assist="retour">Retour</button><button class="go" data-assist="2">Suivant</button></div><p class="note">Laissez une case vide pour retirer un coiffeur. Les parts (%) se règlent dans Réglages.</p>`;
-  return pas+`<h2>Code du gérant</h2><p class="note">Ce code protège la recette et les réglages. Choisissez-le vous-même et notez-le : il ne peut pas être récupéré.</p><div class="form"><input id="waCode" class="full" type="password" inputmode="numeric" placeholder="Code (4 à 8 chiffres)"><input id="waCode2" class="full" type="password" inputmode="numeric" placeholder="Retaper le code"><button class="sec" data-assist="retour">Retour</button><button class="go" data-assist="3">Terminer</button></div><p class="note">Les prix des prestations et les produits se changent ensuite dans Gérant → Réglages et Stock.</p>`;
+  return pas+`<h2>Code du gérant</h2><p class="note">Ce code protège la recette et les réglages. Choisissez-le vous-même et notez-le : il ne peut pas être récupéré.</p><div class="form"><input id="waCode" class="full" type="password" inputmode="numeric" placeholder="Code (6 à 8 chiffres)"><input id="waCode2" class="full" type="password" inputmode="numeric" placeholder="Retaper le code"><button class="sec" data-assist="retour">Retour</button><button class="go" data-assist="3">Terminer</button></div><p class="note">Les prix des prestations et les produits se changent ensuite dans Gérant → Réglages et Stock.</p>`;
 }
-function vVerrou(){return`<div class="verrou"><h2>Espace gérant</h2><label for="code" class="sous">Entrez le code</label><input id="code" type="password" inputmode="numeric" maxlength="8" autocomplete="off"><div class="err" id="err"></div><button class="go" data-ouvrir style="max-width:200px">Ouvrir</button>${conf.demo?`<p class="note">Code de la démo : 1234</p>`:""}</div>`}
+function vVerrou(){return`<div class="verrou"><h2>Espace gérant</h2><label for="code" class="sous">Entrez le code</label><input id="code" type="password" inputmode="numeric" maxlength="8" autocomplete="off"><div class="err" id="err">${blocageRestant()?"Trop d'essais. Réessayez dans "+Math.ceil(blocageRestant()/60000)+" min.":""}</div><button class="go" data-ouvrir style="max-width:200px">Ouvrir</button>${conf.demo?`<p class="note">Code de la démo : 1234</p>`:""}</div>`}
 
 function vGerant(){
   const T={bilan:"Bilan",msg:"Messages",coif:"Coiffeurs",dep:"Dépenses",caisse:"Caisse",stock:"Stock",histo:"7 jours",reglages:"Réglages"};
-  let h=(!conf.demo&&conf.code==="1234")?`<div class="alerte-code">Le code est encore 1234, connu de tous. Changez-le dans <b>Réglages</b>.</div>`:"";
+  let h=(!conf.demo&&conf.codeDefaut)?`<div class="alerte-code">Le code est encore 1234, connu de tous. Changez-le dans <b>Réglages</b>.</div>`:(!conf.demo&&conf.codeCourt)?`<div class="alerte-code">Votre code est trop court. Passez à un code de <b>6 chiffres</b> dans Réglages.</div>`:"";
   if(!conf.demo&&Object.keys(clients).length&&(!conf.sauv||Date.now()-conf.sauv>7*JOUR))h+=`<div class="alerte-code">Pas de sauvegarde depuis plus de 7 jours. Faites-en une dans <b>Réglages</b>.</div>`;
   h+=`<div class="tabs">${Object.entries(T).map(([k,l])=>`<button data-tab="${k}" aria-pressed="${k===onglet}">${l}</button>`).join("")}<button data-fermer>Verrouiller</button></div>`;
   const s=stats(jour);
   if(onglet==="bilan"){
+    const an=jour.ventes.filter(x=>x.annule);
+    if(an.length)h+=`<div class="ecart ko" style="margin-top:12px"><b>${an.length} passage${an.length>1?"s":""} annulé${an.length>1?"s":""} aujourd'hui · ${F(an.reduce((a,x)=>a+(Number(x.total)||0),0))}</b>${an.map(x=>`<div class="sous" style="color:inherit">${H(x.t)} · ${x.items.map(i=>esc(i.n)).join(", ")} · ${esc(coifN(x.coif))} · ${F(x.total)}${x.annuleA?" · annulé à "+H(x.annuleA)+(x.annulePar?" ("+esc(x.annulePar)+")":""):""}</div>`).join("")}</div>`;
     h+=`<div class="kpis"><div class="kpi fort"><div class="l">Recette du jour</div><div class="v num">${F(s.ca)}</div></div>
       <div class="kpi"><div class="l">Clients</div><div class="v num">${s.n}</div>${s.enc&&s.enc!==s.n?`<small class="sous">en ${s.enc} encaissement${s.enc>1?"s":""}</small>`:""}</div><div class="kpi"><div class="l">Dépenses</div><div class="v num">${F(s.dep)}</div></div>
       <div class="kpi"><div class="l">Prestations</div><div class="v num">${F(s.serv)}</div></div><div class="kpi"><div class="l">Produits vendus</div><div class="v num">${F(s.prod)}</div></div>
@@ -628,7 +674,7 @@ function vGerant(){
   }
   if(onglet==="reglages"){
     h+=`<h2>Le salon</h2><div class="form"><input id="gSalon" class="full" placeholder="Nom du salon" value="${esc(conf.salon||"")}"><input id="gTel" class="full" inputmode="tel" placeholder="Numéro WhatsApp du salon (8 chiffres)" value="${esc(conf.tel||"")}">
-      <label class="sous" for="gOuv">Ouverture</label><label class="sous" for="gFerm">Fermeture</label><input id="gOuv" type="time" value="${conf.ouv||"09:00"}"><input id="gFerm" type="time" value="${conf.ferm||"21:00"}">
+      <label class="sous" for="gOuv">Ouverture</label><label class="sous" for="gFerm">Fermeture</label><input id="gOuv" type="time" value="${esc(conf.ouv||"09:00")}"><input id="gFerm" type="time" value="${esc(conf.ferm||"21:00")}">
       <label class="sous" for="gDuree">Durée moyenne d'une coupe</label><select id="gDuree">${[10,15,20,25,30,40,45,60].map(n=>`<option value="${n}" ${n===(conf.duree||20)?"selected":""}>${n} min</option>`).join("")}</select>
       <label class="consent"><input type="checkbox" id="gSimple" ${conf.simple?"checked":""}> Mode simple : grandes tuiles, plus faciles à toucher</label><button class="btn full" data-savesalon>Enregistrer</button></div>`;
     h+=`<h2>Coiffeurs</h2><div class="form">`+actifs(conf.coiffeurs).map(c=>`<input id="cn_${c.id}" value="${esc(c.n)}" aria-label="Nom du coiffeur"><div class="row"><select id="cp_${c.id}" aria-label="Part de ${esc(c.n)}">${[0,30,40,50,60,70].map(p=>`<option value="${p}" ${p===c.pct?"selected":""}>${p?p+" % pour lui":"Salaire fixe"}</option>`).join("")}</select><button class="mini${confDel==="c:"+c.id?" danger":""}" data-delcoif="${c.id}" aria-label="Retirer ${esc(c.n)}">${confDel==="c:"+c.id?"Confirmer":"Retirer"}</button></div>`).join("")+`<button class="btn full" data-savecoif>Enregistrer</button>
@@ -637,10 +683,10 @@ function vGerant(){
     h+=`<h2>Prestations et prix</h2><p class="note">Mettre 0 pour un prix à confirmer au salon : il sera demandé à la caisse.</p>`+catsS.map(ct=>`<div class="lbl">${esc(ct)}</div><div class="form">`+conf.services.filter(x=>(x.cat||"Autres")===ct).map(x=>`<input id="sn_${x.id}" value="${esc(x.n)}" aria-label="Prestation"><div class="row"><input id="sp_${x.id}" type="number" inputmode="numeric" value="${x.p}" aria-label="Prix de ${esc(x.n)}"><button class="mini${confDel==="s:"+x.id?" danger":""}" data-delsvc="${x.id}" aria-label="Supprimer ${esc(x.n)}">${confDel==="s:"+x.id?"Confirmer":"×"}</button></div>`).join("")+`</div>`).join("")+`<div class="form" style="margin-top:10px"><button class="btn full" data-savesvc>Enregistrer les prix</button></div>`;
     h+=`<h2>Nouvelle prestation</h2><div class="form"><input id="nsN" class="full" placeholder="Nom (ex : Dégradé + barbe)"><input id="nsP" type="number" inputmode="numeric" placeholder="Prix"><select id="nsC">${catsS.map(ct=>`<option>${esc(ct)}</option>`).join("")}<option value="__new">Nouvelle catégorie…</option></select><input id="nsCN" class="full" placeholder="Nom de la nouvelle catégorie (si besoin)"><button class="btn full" data-addsvc>Ajouter la prestation</button></div>`;
     h+=`<h2>Fidélité</h2><div class="form"><label class="sous" for="fidN">Visite offerte tous les</label><select id="fidN">${[5,6,8,10,12].map(n=>`<option ${n===conf.fid?"selected":""}>${n}</option>`).join("")}</select><label class="sous" for="parM">Parrainage : réduction pour le client qui en amène un autre</label><select id="parM">${[0,250,500,1000,1500,2000].map(n=>`<option value="${n}" ${n===(conf.par??500)?"selected":""}>${n?F(n):"Pas de parrainage"}</option>`).join("")}</select><button class="btn full" data-savefid>Enregistrer</button></div>`;
-    h+=`<h2>Code gérant</h2><p class="note">Choisissez un code que vous seul connaissez. Personne d'autre, même SIBYX, ne peut alors ouvrir l'espace gérant.</p><div class="form"><input id="ac" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Code actuel"><input id="nc" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Nouveau code (4 à 8 chiffres)"><input id="nc2" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Retaper le nouveau code"><button class="btn full" data-code>Changer le code</button></div>`;
+    h+=`<h2>Code gérant</h2><p class="note">Choisissez un code que vous seul connaissez. Personne d'autre, même SIBYX, ne peut alors ouvrir l'espace gérant.</p><div class="form"><input id="ac" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Code actuel"><input id="nc" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Nouveau code (6 à 8 chiffres)"><input id="nc2" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Retaper le nouveau code"><button class="btn full" data-code>Changer le code</button></div>`;
     h+=`<h2>Sauvegarde</h2><p class="note">Toutes les données (clients, ventes, stock) sont sur cette tablette. Si elle est perdue ou cassée, tout est perdu. Téléchargez une sauvegarde chaque semaine et gardez le fichier en lieu sûr : il est confidentiel.${conf.sauv?" Dernière sauvegarde : "+dateC(conf.sauv)+".":" Aucune sauvegarde faite."}</p>
-    <div class="form"><button class="btn full" data-export>Télécharger une sauvegarde</button><label class="mini full" for="imp" style="text-align:center;padding:11px;cursor:pointer">Restaurer une sauvegarde…</label><input id="imp" type="file" accept=".json,application/json" hidden></div>
-    ${impData?`<div class="ecart ko">Ce fichier date du ${dateC(impData.date)}. Il va <b>remplacer</b> toutes les données de cette tablette.<div class="acts" style="justify-content:flex-start;margin-top:8px"><button class="mini danger" data-impok>Oui, remplacer</button><button class="mini" data-impno>Annuler</button></div></div>`:""}
+    <div class="form"><input id="sp1" type="password" autocomplete="new-password" placeholder="Mot de passe de la sauvegarde (8 caractères mini)"><input id="sp2" type="password" autocomplete="new-password" placeholder="Retaper le mot de passe"><button class="btn full" data-export>Télécharger une sauvegarde protégée</button><p class="note full" style="margin:0">Sans ce mot de passe, le fichier est illisible, même pour SIBYX. Notez-le : il ne peut pas être récupéré.</p><label class="mini full" for="imp" style="text-align:center;padding:11px;cursor:pointer">Restaurer une sauvegarde…</label><input id="imp" type="file" accept=".json,application/json" hidden></div>
+    ${impData&&impData.verrou?`<div class="ecart ko">Sauvegarde protégée. Entrez son mot de passe :<div class="form" style="margin-top:8px"><input id="ipw" class="full" type="password" autocomplete="off" placeholder="Mot de passe de la sauvegarde"><button class="mini danger" data-impdech>Ouvrir le fichier</button><button class="mini" data-impno>Annuler</button></div></div>`:impData?`<div class="ecart ko">${impData.ancien?"⚠️ Ancienne sauvegarde non protégée. ":""}Ce fichier date du ${dateC(impData.date)}. Il va <b>remplacer</b> toutes les données de cette tablette.<div class="acts" style="justify-content:flex-start;margin-top:8px"><button class="mini danger" data-impok>Oui, remplacer</button><button class="mini" data-impno>Annuler</button></div></div>`:""}
     <p class="note">Les données restent uniquement sur cet appareil : elles ne sont envoyées nulle part, pas même à SIBYX. L'appli marche aussi sans internet. Utilisez toujours le même appareil au salon.</p>`;
   }
   return h;
@@ -654,6 +700,7 @@ function bilanTexte(){
   t+=`\nDépenses : ${F(s.dep)}\nReste : ${F(s.net)}`;
   const bas=aRacheter();if(bas.length)t+=`\n\nÀ racheter : ${bas.map(p=>p.n+" ("+p.stock+")").join(", ")}`;
   if(s.avances)t+=`\nAvances aux coiffeurs : ${F(s.avances)}`;
+  {const an=jour.ventes.filter(x=>x.annule);if(an.length)t+=`\nPassages annulés : ${an.length} (${F(an.reduce((a,x)=>a+(Number(x.total)||0),0))})`}
   if(s.attendu!=null&&jour.reel!=null){const e=jour.reel-s.attendu;t+=`\nCaisse : ${e===0?"juste":"écart "+(e>0?"+":"")+F(e)}`}
   return t+`\n\n— Bilan généré par l'application SIBYX`;
 }
@@ -681,7 +728,7 @@ document.addEventListener("change",e=>{
     compresser(f).then(d=>phAjout(t,d)).then(()=>{toast("Photo enregistrée");if(dernier===t&&vue==="caisse"){}chargerPhotos()}).catch(()=>toast("Photo impossible"));return}if(e.target.id==="offrir"){offrir=e.target.checked;rPanier()}
   if(e.target.id==="cok")cok=e.target.checked;
   if(e.target.id==="cbon"){cbon=e.target.checked;rPanier()}
-  if(e.target.id==="imp"&&e.target.files[0]){const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(o.app!=="bbs"||!o.data)throw 0;impData=o}catch(x){impData=null;toast("Ce fichier n'est pas une sauvegarde de l'appli")}render()};r.readAsText(e.target.files[0])}});
+  if(e.target.id==="imp"&&e.target.files[0]){const f=e.target.files[0];e.target.value="";if(f.size>60e6){toast("Fichier trop gros");return}const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||o.app!=="bbs")throw 0;impData=o.chiffre?{verrou:o}:controlerSauvegarde(o)}catch(x){impData=null;toast("Ce fichier n'est pas une sauvegarde valide de l'appli")}render()};r.readAsText(f)}});
 // Lien WhatsApp ouvert : on note l'envoi pour ne pas l'envoyer deux fois
 document.addEventListener("click",e=>{const l=e.target.closest("a[data-env]");if(!l)return;const[k,t]=l.dataset.env.split("|"),c=clients[t];if(!c)return;c.msg=c.msg||{};
   if(k==="promo"&&conf.promo){c.msg.promo=c.msg.promo||{};c.msg.promo[conf.promo.id]=Date.now()}else if(k==="anniv")c.msg.anniv=new Date().getFullYear();else c.msg[k]=Date.now();
@@ -713,6 +760,7 @@ document.addEventListener("click",e=>{
     x.tel=tn;if(nm)x.nom=nm;saveC();saveJ();lierT=null;if(sansNum===x.t){sansNum=null;dernier=tn}toast("Visite comptée · "+(c.nom||tn)+" : "+c.v+" visite"+(c.v>1?"s":""));return render()}
   if(a.filtre){filtreC=a.filtre;return render()}
   if("nomerci" in a){dernier=null;dernierPar=null;return render()}
+  if((a.savefiche||a.supcli||a.cestlui||a.vis)&&!ouvert){toast("Code gérant nécessaire");return}
   if(a.savefiche){const c=clients[a.savefiche],an=lireAnniv(document.getElementById("fA").value);if(an===null){toast("Anniversaire : écrire jj/mm");return}
     c.nom=document.getElementById("fN").value.trim();c.anniv=an;c.ok=document.getElementById("fO").checked;c.note=document.getElementById("fNote").value.trim();saveC();toast("Fiche enregistrée");return render()}
   if(a.supcli){if(!confSup){confSup=true;return render()}delete clients[a.supcli];saveC();phSupprTel(a.supcli).catch(()=>{});ficheTel=null;confSup=false;toast("Client supprimé");return render()}
@@ -722,9 +770,11 @@ document.addEventListener("click",e=>{
   if("finpromo" in a){conf.promo=null;saveConf();toast("Offre terminée");return render()}
   if("savemod" in a){conf.modeles={merci:document.getElementById("mMerci").value.trim(),absent:document.getElementById("mAbsent").value.trim(),anniv:document.getElementById("mAnniv").value.trim()};conf.absJ=+document.getElementById("mAbsJ").value;saveConf();toast("Messages enregistrés");return render()}
   if("resetmod" in a){conf.modeles=null;saveConf();toast("Messages d'origine remis");return render()}
-  if("export" in a){conf.sauv=Date.now();saveConf();telechargerSauvegarde();toast("Sauvegarde téléchargée");return render()}
+  if("export" in a){const m1=document.getElementById("sp1").value,m2=document.getElementById("sp2").value;if(m1.length<8){toast("Mot de passe : 8 caractères minimum");return}if(m1!==m2){toast("Les deux mots de passe sont différents");return}
+    b.disabled=true;telechargerSauvegarde(m1).then(()=>{conf.sauv=Date.now();saveConf();toast("Sauvegarde protégée téléchargée");render()}).catch(()=>{b.disabled=false;toast("Sauvegarde impossible")});return}
+  if("impdech" in a){const m=document.getElementById("ipw").value;b.disabled=true;dechiffrer(impData.verrou,m).then(x=>{impData=controlerSauvegarde({...x,chiffre:true});render()}).catch(()=>{b.disabled=false;toast("Mot de passe incorrect ou fichier abîmé")});return}
   if("impno" in a){impData=null;return render()}
-  if("impok" in a){try{effacerTout();Object.entries(impData.data).forEach(([k,v])=>{if(k.startsWith("bbs3:"))localStorage.setItem(k,v)})}catch(x){toast("Restauration impossible");return}
+  if("impok" in a){if(!impData||impData.verrou||!impData.data)return;try{effacerTout();Object.entries(impData.data).forEach(([k,v])=>{if(k.startsWith("bbs3:"))localStorage.setItem(k,v)})}catch(x){toast("Restauration impossible");return}
     (impData.photos?phRemplacer(impData.photos):Promise.resolve()).catch(()=>{}).then(()=>location.reload());return}
   if("reset" in a){confReset=true;return render()}
   if("reset0" in a){confReset=false;return render()}
@@ -744,7 +794,8 @@ document.addEventListener("click",e=>{
     if(tn.length===8){const c=clients[tn]||{nom:"",v:0,prem:Date.now()};c.v++;c.der=Date.now();c.dep=(c.dep||0)+tot;c.coif=coif;if(cnom.trim())c.nom=cnom.trim();if(cok)c.ok=true;sansNum=null;if(parOk)c.par=pt;if(cbon&&c.bonus>0)c.bonus--;const an=lireAnniv(cann);if(an)c.anniv=an;clients[tn]=c;saveC();dernier=tn}else{dernier=null;sansNum=jour.ventes[jour.ventes.length-1].t}
     if(rdvLie){const r=rdv.find(x=>x.id===rdvLie);if(r)r.st="venu";saveR()}
     toast("Encaissé · "+F(tot)+(remise?" (fidélité)":""));panier=[];offrir=false;ctel="";cnom="";cok=false;cann="";cpar="";cbon=false;rdvLie=null;paie="Espèces";render();scrollTo({top:0,behavior:"smooth"});return}
-  if(a.annul){const t=+a.annul;if(confAnnul===t){const v=jour.ventes.find(x=>x.t===t);v.annule=true;v.items.filter(i=>i.k==="p").forEach(i=>{const p=conf.produits.find(x=>x.id===i.id);if(p&&p.stock!=null)p.stock+=i.q});saveConf();if(v.tel&&clients[v.tel]){clients[v.tel].v=Math.max(0,clients[v.tel].v-1);saveC()}saveJ();confAnnul=null;toast("Passage annulé")}else confAnnul=t;return render()}
+  if(a.annulok){const t=+a.annulok,el=document.getElementById("annCode");verifierCode(el?el.value:"").then(okc=>{if(!okc){essaiRate();toast("Code incorrect");return}annuler(t,"gérant");annulCode=null;render()});return}
+  if(a.annul){const t=+a.annul;if(confAnnul===t){if(!ouvert&&Date.now()-t>2*60000){annulCode=t;confAnnul=null;return render()}annuler(t,ouvert?"gérant":"caisse");confAnnul=null;return render()}else confAnnul=t;return render()}
   if("addrdv" in a){const nom=document.getElementById("rNom").value.trim(),h=document.getElementById("rH").value,d=document.getElementById("rDate").value;if(!nom||!h||!d){toast("Prénom, date et heure obligatoires");return}
     rdv.push({id:uid(),date:d,h,nom,tel:document.getElementById("rTel").value.trim(),sid:document.getElementById("rS").value,coif:document.getElementById("rC").value,st:"prevu"});saveR();toast("Rendez-vous ajouté");return render()}
   if(a.venu){const r=rdv.find(x=>x.id===a.venu),s=svc(r.sid);panier=s?[{k:"s",id:s.id,n:s.n,p:s.p,q:1}]:[];coif=r.coif;ctel=r.tel||"";cok=false;cann="";cpar="";cbon=false;cnom=r.nom.replace(" (exemple)","");rdvLie=r.id;offrir=false;vue="caisse";return render()}
@@ -754,7 +805,8 @@ document.addEventListener("click",e=>{
     const txt=`Bonjour ${r.nom.replace(" (exemple)","")}, c'est ${conf.salon}.Petit rappel : votre rendez-vous (${(svc(r.sid)||{n:""}).n}) est prévu ${r.date===cleJ()?"aujourd'hui":"le "+d} à ${r.h} avec ${coifN(r.coif)}. À tout à l'heure !`;
     document.getElementById("rappelZone").innerHTML=`<h2>Message de rappel</h2><pre class="wa" id="rapTxt">${esc(txt)}</pre><p class="note">${r.tel?"À envoyer au "+esc(r.tel)+" sur WhatsApp.":"Pas de numéro enregistré pour ce client."}</p>`;
     copier(txt,"rapTxt");document.getElementById("rappelZone").scrollIntoView({behavior:"smooth"});return}
-  if("ouvrir" in a){if(document.getElementById("code").value===conf.code){ouvert=true;onglet="bilan";render()}else document.getElementById("err").textContent="Code incorrect";return}
+  if("ouvrir" in a){const er=document.getElementById("err"),v=document.getElementById("code").value;if(blocageRestant()){er.textContent="Trop d'essais. Réessayez dans "+Math.ceil(blocageRestant()/60000)+" min.";return}
+    b.disabled=true;verifierCode(v).then(okc=>{b.disabled=false;if(okc){conf.essais=0;conf.bloque=0;saveConf();ouvert=true;derniereAction=Date.now();onglet="bilan";render()}else{essaiRate();const r=5-(conf.essais%5);er.textContent=blocageRestant()?"Trop d'essais. Réessayez dans "+Math.ceil(blocageRestant()/60000)+" min.":"Code incorrect ("+r+" essai"+(r>1?"s":"")+" avant blocage)"}});return}
   if("fermer" in a){ouvert=false;vue="caisse";return render()}
   if(a.tab){confDel=null;editProd=null;onglet=a.tab;return render()}
   if("dep" in a){const m=+document.getElementById("dM").value;if(!(m>0)){toast("Indiquez un montant");return}jour.dep.push({t:Date.now(),cat:document.getElementById("dCat").value,m,note:document.getElementById("dN").value.trim(),esp:document.getElementById("dEsp").checked});saveJ();toast("Dépense enregistrée");return render()}
@@ -778,8 +830,8 @@ document.addEventListener("click",e=>{
     else if(a.assist==="2"){const noms=[...document.querySelectorAll("[data-wac]")].map(x=>x.value.trim()).filter(Boolean);if(!noms.length){toast("Écrivez au moins un coiffeur");return}
       const anc=actifs(conf.coiffeurs);anc.forEach((c,k)=>{if(noms[k])c.n=noms[k];else c.off=true});noms.slice(anc.length).forEach(n=>conf.coiffeurs.push({id:"c"+uid(),n,pct:50}));etapeA=3}
     else if(a.assist==="plus"){const l=document.getElementById("waListe");const x=document.createElement("input");x.dataset.wac="";x.placeholder="Nom du coiffeur";l.appendChild(x);x.focus();return}
-    else if(a.assist==="3"){const v=document.getElementById("waCode").value.trim(),v2=document.getElementById("waCode2").value.trim();if(!/^\d{4,8}$/.test(v)){toast("4 à 8 chiffres");return}if(v!==v2){toast("Les deux codes sont différents");return}if(v==="1234"){toast("Choisissez un autre code que 1234");return}
-      conf.code=v;conf.assistant=false;etapeA=1;saveConf();toast("C'est prêt !");vue="caisse";ouvert=false;return render()}
+    else if(a.assist==="3"){const v=document.getElementById("waCode").value.trim(),v2=document.getElementById("waCode2").value.trim();if(!/^\d{6,8}$/.test(v)){toast("6 à 8 chiffres");return}if(v!==v2){toast("Les deux codes sont différents");return}if(/^(\d)\1+$/.test(v)||"0123456789".includes(v)||"9876543210".includes(v)){toast("Code trop facile à deviner");return}
+      definirCode(v).then(()=>{conf.assistant=false;conf.essais=0;conf.bloque=0;etapeA=1;saveConf();toast("C'est prêt !");vue="caisse";ouvert=false;render()});return}
     else if(a.assist==="retour"){etapeA=Math.max(1,etapeA-1)}
     saveConf();return render()}
   if("savecoif" in a){actifs(conf.coiffeurs).forEach(c=>{c.n=document.getElementById("cn_"+c.id).value.trim()||c.n;c.pct=+document.getElementById("cp_"+c.id).value});saveConf();toast("Coiffeurs enregistrés");return render()}
@@ -792,7 +844,8 @@ document.addEventListener("click",e=>{
     conf.salon=n;conf.tel=t;conf.simple=document.getElementById("gSimple").checked;conf.duree=+document.getElementById("gDuree").value;conf.ouv=document.getElementById("gOuv").value||"09:00";conf.ferm=document.getElementById("gFerm").value||"21:00";saveConf();toast("Enregistré");return render()}
   if("savesvc" in a){conf.services.forEach(s=>{const en=document.getElementById("sn_"+s.id);if(!en)return;s.n=en.value.trim()||s.n;const p=+document.getElementById("sp_"+s.id).value;if(p>=0)s.p=p});saveConf();toast("Prix enregistrés");return render()}
   if("savefid" in a){conf.fid=+document.getElementById("fidN").value;conf.par=+document.getElementById("parM").value;saveConf();toast("Fidélité mise à jour");return render()}
-  if("code" in a){const old=document.getElementById("ac").value.trim(),v=document.getElementById("nc").value.trim(),v2=document.getElementById("nc2").value.trim();if(old!==conf.code){toast("Code actuel incorrect");return}if(!/^\d{4,8}$/.test(v)){toast("4 à 8 chiffres");return}if(v!==v2){toast("Les deux codes sont différents");return}if(v==="1234"){toast("Choisissez un autre code que 1234");return}conf.code=v;saveConf();toast("Code changé");return render()}
+  if("code" in a){const old=document.getElementById("ac").value.trim(),v=document.getElementById("nc").value.trim(),v2=document.getElementById("nc2").value.trim();if(!/^\d{6,8}$/.test(v)){toast("Le nouveau code doit avoir 6 à 8 chiffres");return}if(v!==v2){toast("Les deux codes sont différents");return}if(/^(\d)\1+$/.test(v)||"0123456789".includes(v)||"9876543210".includes(v)){toast("Code trop facile à deviner");return}
+    verifierCode(old).then(okc=>{if(!okc){toast("Code actuel incorrect");return}return definirCode(v).then(()=>{toast("Code changé");render()})});return}
   if(a.copier){copier(bilanTexte(),a.copier);return}
 });
 render();
@@ -808,6 +861,7 @@ majTheme();setInterval(()=>{if(themeMode==="soir")themeApplique("soir")},60000);
 document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-btn]"))return;const i=THEMES.findIndex(t=>t[0]===themeMode);themeMode=THEMES[(i+1)%THEMES.length][0];
   try{localStorage.setItem("bbs3:theme",themeMode)}catch(x){}majTheme();toast({auto:"Auto : suit le réglage de l'appareil",soir:"Sombre le soir (19 h – 7 h)",clair:"Toujours clair",sombre:"Toujours sombre"}[themeMode])});
 
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 // Hors-ligne : l'appli reste disponible sans connexion
 if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 </script>
