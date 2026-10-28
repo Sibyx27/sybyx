@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nqNMLqGXMbk9+qCrXgAhPHAGkaEHoP6Cl2EF21FwtRs=' 'sha256-f6SsOarPJbo6R9crN5dGEQIhpz99yGkHepL751FsAX8='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nqNMLqGXMbk9+qCrXgAhPHAGkaEHoP6Cl2EF21FwtRs=' 'sha256-xLk11CyMWk0w0bS08W77vhPzb9mfjCJiFqsWZspU00o='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -208,7 +208,16 @@ pre.wa{white-space:pre-wrap;background:var(--surface);border:1px solid var(--lig
   <button class="theme" id="themeBtn" data-theme-btn aria-label="Changer l'affichage clair / sombre"></button>
 </header>
 <div id="bandeau"></div>
-<main id="app"></main>
+<main id="app"><div class="verrou" style="text-align:left;align-items:stretch">
+<h2>L'appli ne peut pas démarrer sur ce navigateur</h2>
+<p>Ce navigateur est trop ancien. Pour utiliser l'appli :</p>
+<ol style="line-height:1.6;padding-left:20px">
+<li>Ouvrez le <b>Play Store</b>.</li>
+<li>Cherchez <b>Google Chrome</b>, puis touchez <b>Installer</b> ou <b>Mettre à jour</b>.</li>
+<li>Ouvrez cette même adresse dans Chrome.</li>
+</ol>
+<p class="note">Si ce message reste affiché dans Chrome à jour, contactez SIBYX.</p>
+</div></main>
 <footer class="credit">
   <div class="sx"><span class="sxm">SIBYX</span><span>Intelligence Digitale</span></div>
   <p>Application conçue et développée par SIBYX pour <span id="pourSalon">Balila Barber Street</span>.</p>
@@ -261,7 +270,7 @@ const CONF_DEFAUT={code:"1234",fid:10,par:500,demo:true,salon:"Balila Barber Str
     {id:"crayon",n:"Crayon",p:250,achat:16,stock:8,seuil:2}]};
 
 let conf=lire("bbs3:conf",null);
-if(!conf){conf=structuredClone(CONF_DEFAUT);ecrire("bbs3:conf",conf);semerDemo();}
+if(!conf){conf=JSON.parse(JSON.stringify(CONF_DEFAUT));ecrire("bbs3:conf",conf);semerDemo();}
 function saveConf(){ecrire("bbs3:conf",conf)}
 // ———— Mises à jour de la configuration déjà enregistrée sur la tablette ————
 // Chaque ligne s'applique une seule fois. Les ventes, clients et rendez-vous ne sont jamais touchés.
