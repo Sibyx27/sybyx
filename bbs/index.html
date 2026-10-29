@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nqNMLqGXMbk9+qCrXgAhPHAGkaEHoP6Cl2EF21FwtRs=' 'sha256-xLk11CyMWk0w0bS08W77vhPzb9mfjCJiFqsWZspU00o='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nqNMLqGXMbk9+qCrXgAhPHAGkaEHoP6Cl2EF21FwtRs=' 'sha256-fb8aKyK83YHqtJTjtzoFmFyzZ8SMtuR54xOF2Y1qb0U='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -181,6 +181,9 @@ details.mod summary{cursor:pointer;font-weight:700;padding:10px 0}
 .sugg{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .sugg:empty{display:none}
 .alerte-code{background:var(--rouge-doux);color:var(--rouge);border-radius:10px;padding:10px 12px;margin:0 0 12px;font-size:14px}
+.alerte-code.sauv{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-weight:600}
+.alerte-code.sauv .go{width:auto;max-width:none;padding:10px 16px;font-size:15px}
+.sauv-ok{font-size:13px;color:var(--encre-3);margin:0 0 10px}
 .verrou{margin-top:40px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
 .verrou input{max-width:180px;text-align:center;font-size:24px;letter-spacing:.4em}
 .err{color:var(--rouge);font-size:13px;min-height:18px}
@@ -331,7 +334,7 @@ function semerDemo(){
 let vue="caisse", ouvert=false, onglet="bilan";
 let panier=[], coif=null, paie="Espèces", ctel="", cnom="", offrir=false, rdvLie=null;
 let confAnnul=null, confReset=false, recherche="";
-let annulCode=null, sansNum=null, lierT=null, cpar="", cbon=false, dernierPar=null, qCoif="", confDel=null, editProd=null, etapeA=1, cok=false, cann="", dernier=null, ficheTel=null, filtreC="tous", confSup=false, impData=null;
+let annulCode=null, sansNum=null, lierT=null, cpar="", cbon=false, dernierPar=null, qCoif="", confDel=null, editProd=null, etapeA=1, cok=false, cann="", dernier=null, ficheTel=null, filtreC="tous", confSup=false, impData=null, voirMdp=false;
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.k);toast.k=setTimeout(()=>t.hidden=true,1800)}
 const actifs=a=>a.filter(x=>!x.off);
 const coifN=id=>(conf.coiffeurs.find(c=>c.id===id)||{n:"?"}).n;
@@ -421,10 +424,30 @@ function controlerSauvegarde(o){if(!o||typeof o!=="object"||typeof o.data!=="obj
   const photos=(Array.isArray(o.photos)?o.photos:[]).filter(x=>x&&typeof x.id==="string"&&/^\d{8}$/.test(x.tel)&&typeof x.data==="string"&&x.data.startsWith("data:image/jpeg;base64,")&&x.data.length<3e6).map(x=>({id:x.id.slice(0,40),tel:x.tel,t:Number(x.t)||Date.now(),data:x.data}));
   return{date:Number(o.date)||Date.now(),data,photos,ancien:!o.chiffre}}
 
-async function telechargerSauvegarde(mdp){const data={};try{Object.keys(localStorage).filter(k=>k.startsWith("bbs3:")).forEach(k=>data[k]=localStorage.getItem(k))}catch(e){}
+async function fichierSauvegarde(mdp,ext){const data={};try{Object.keys(localStorage).filter(k=>k.startsWith("bbs3:")).forEach(k=>data[k]=localStorage.getItem(k))}catch(e){}
   const photos=await phTout(),fichier=await chiffrer({data,photos,date:Date.now()},mdp);
-  const b=new Blob([JSON.stringify(fichier)],{type:"application/json"}),a=document.createElement("a");
-  a.href=URL.createObjectURL(b);a.download=(conf.salon||"salon").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")+"-sauvegarde-"+cleJ()+".json";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
+  const nom=(conf.salon||"salon").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")+"-sauvegarde-"+cleJ()+"-"+H(Date.now()).replace(":","h")+"."+(ext||"json");
+  return new File([JSON.stringify(fichier)],nom,{type:ext==="txt"?"text/plain":"application/json"})}
+function telechargerFichier(f){const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
+async function telechargerSauvegarde(mdp){telechargerFichier(await fichierSauvegarde(mdp,"json"))}
+
+// ———— Sauvegarde du jour : 1 bouton, le fichier part sur WhatsApp ————
+// Le fichier est chiffré avec le mot de passe de sauvegarde : même envoyé par erreur, il reste illisible.
+// Il contient tout, y compris le code gérant : après une restauration, l'ancien code remarche.
+let sauvPrete=null;
+const sauvFaiteAuj=()=>!!conf.sauv&&cleJ(new Date(conf.sauv))===cleJ();
+function sauvOk(){sauvPrete=null;conf.sauv=Date.now();saveConf();toast("Sauvegarde du jour faite ✓")}
+// "ok" : envoyée ; "attente" : il faut appuyer encore une fois sur « Envoyer »
+async function partagerSauv(f){
+  if(navigator.canShare&&navigator.share&&navigator.canShare({files:[f]})){
+    try{await navigator.share({files:[f],title:"Sauvegarde "+(conf.salon||"salon"),text:"Sauvegarde "+(conf.salon||"salon")+" du "+new Date().toLocaleDateString("fr-FR")});return "ok"}
+    catch(e){return "attente"}}
+  telechargerFichier(f);return "ok"}
+function bandeauSauv(){
+  if(conf.demo)return "";
+  if(sauvFaiteAuj())return `<p class="sauv-ok">✓ Sauvegarde du jour faite à ${H(conf.sauv)}</p>`;
+  if(!conf.sauvMdp)return `<div class="alerte-code">⚠️ Les données ne sont pas sauvegardées. Le gérant doit activer la <b>sauvegarde du jour</b> dans Gérant → Réglages.</div>`;
+  return `<div class="alerte-code sauv"><span>Sauvegarde du jour pas encore faite</span><button class="go" data-sauvj>${sauvPrete?"📤 Envoyer sur WhatsApp":"💾 Sauvegarder"}</button></div>`}
 
 function totalPanier(){let t=panier.reduce((a,i)=>a+i.p*i.q,0);if(offrir){const s=panier.filter(i=>i.k==="s");if(s.length)t-=Math.min(...s.map(i=>i.p))}if(cbon&&conf.par)t-=Math.min(t,conf.par);return t}
 function fidelite(tel){const c=clients[telNet(tel)];const v=c?c.v:0;return{v,c,pret:v>0&&(v%conf.fid===conf.fid-1)}}
@@ -495,7 +518,7 @@ function suggestions(){const d=String(ctel||"").replace(/\D/g,""),q=(cnom||"").t
   l=l.sort((a,b)=>(b.der||0)-(a.der||0)).slice(0,4);
   return l.length?`<span class="sous">Déjà client ?</span>`+l.map(c=>`<button class="chip" data-pick="${c.t}">${esc(c.nom||"Sans nom")} · ${esc(masque(c.t))}</button>`).join(""):""}
 function vCaisse(){
-  let h=alerteStock();
+  let h=((jour.ventes.length||Object.keys(clients).length)?bandeauSauv():"")+alerteStock();
   const f=fidelite(ctel);
   if(dernier&&clients[dernier]){const c={t:dernier,...clients[dernier]};h+=`<div class="merci"><span>Encaissé pour <b>${esc(c.nom||c.t)}</b>. Lui envoyer un merci sur WhatsApp ?</span><a class="wa" href="${waLien(c.t,texteMsg("merci",c))}" target="_blank" rel="noopener" data-env="merci|${c.t}">Envoyer</a><label class="mini" for="phIn" data-phpour="${c.t}" style="cursor:pointer">📷 Photo</label><button class="mini" data-nomerci>Non</button></div>`;
     if(dernierPar&&clients[dernierPar]){const pa={t:dernierPar,...clients[dernierPar]};h+=`<div class="merci"><span><b>${esc(pa.nom||pa.t)}</b> a envoyé ce client : il gagne −${F(conf.par)} sur sa prochaine visite. Le lui dire ?</span><a class="wa" href="${waLien(pa.t,remplir("Merci {prenom} de nous avoir envoyé "+(prenom(c)||"un ami")+" ! 🙏 Ta prochaine visite chez {salon} : "+F(conf.par)+" de réduction.",pa))}" target="_blank" rel="noopener" data-env="par|${pa.t}">Envoyer</a></div>`}}
@@ -599,7 +622,7 @@ function vVerrou(){return`<div class="verrou"><h2>Espace gérant</h2><label for=
 function vGerant(){
   const T={bilan:"Bilan",msg:"Messages",coif:"Coiffeurs",dep:"Dépenses",caisse:"Caisse",stock:"Stock",histo:"7 jours",reglages:"Réglages"};
   let h=(!conf.demo&&conf.codeDefaut)?`<div class="alerte-code">Le code est encore 1234, connu de tous. Changez-le dans <b>Réglages</b>.</div>`:(!conf.demo&&conf.codeCourt)?`<div class="alerte-code">Votre code est trop court. Passez à un code de <b>6 chiffres</b> dans Réglages.</div>`:"";
-  if(!conf.demo&&Object.keys(clients).length&&(!conf.sauv||Date.now()-conf.sauv>7*JOUR))h+=`<div class="alerte-code">Pas de sauvegarde depuis plus de 7 jours. Faites-en une dans <b>Réglages</b>.</div>`;
+  h+=bandeauSauv();
   h+=`<div class="tabs">${Object.entries(T).map(([k,l])=>`<button data-tab="${k}" aria-pressed="${k===onglet}">${l}</button>`).join("")}<button data-fermer>Verrouiller</button></div>`;
   const s=stats(jour);
   if(onglet==="bilan"){
@@ -693,8 +716,11 @@ function vGerant(){
     h+=`<h2>Nouvelle prestation</h2><div class="form"><input id="nsN" class="full" placeholder="Nom (ex : Dégradé + barbe)"><input id="nsP" type="number" inputmode="numeric" placeholder="Prix"><select id="nsC">${catsS.map(ct=>`<option>${esc(ct)}</option>`).join("")}<option value="__new">Nouvelle catégorie…</option></select><input id="nsCN" class="full" placeholder="Nom de la nouvelle catégorie (si besoin)"><button class="btn full" data-addsvc>Ajouter la prestation</button></div>`;
     h+=`<h2>Fidélité</h2><div class="form"><label class="sous" for="fidN">Visite offerte tous les</label><select id="fidN">${[5,6,8,10,12].map(n=>`<option ${n===conf.fid?"selected":""}>${n}</option>`).join("")}</select><label class="sous" for="parM">Parrainage : réduction pour le client qui en amène un autre</label><select id="parM">${[0,250,500,1000,1500,2000].map(n=>`<option value="${n}" ${n===(conf.par??500)?"selected":""}>${n?F(n):"Pas de parrainage"}</option>`).join("")}</select><button class="btn full" data-savefid>Enregistrer</button></div>`;
     h+=`<h2>Code gérant</h2><p class="note">Choisissez un code que vous seul connaissez. Personne d'autre, même SIBYX, ne peut alors ouvrir l'espace gérant.</p><div class="form"><input id="ac" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Code actuel"><input id="nc" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Nouveau code (6 à 8 chiffres)"><input id="nc2" class="full" type="password" inputmode="numeric" autocomplete="off" placeholder="Retaper le nouveau code"><button class="btn full" data-code>Changer le code</button></div>`;
-    h+=`<h2>Sauvegarde</h2><p class="note">Toutes les données (clients, ventes, stock) sont sur cette tablette. Si elle est perdue ou cassée, tout est perdu. Téléchargez une sauvegarde chaque semaine et gardez le fichier en lieu sûr : il est confidentiel.${conf.sauv?" Dernière sauvegarde : "+dateC(conf.sauv)+".":" Aucune sauvegarde faite."}</p>
-    <div class="form"><input id="sp1" type="password" autocomplete="new-password" placeholder="Mot de passe de la sauvegarde (8 caractères mini)"><input id="sp2" type="password" autocomplete="new-password" placeholder="Retaper le mot de passe"><button class="btn full" data-export>Télécharger une sauvegarde protégée</button><p class="note full" style="margin:0">Sans ce mot de passe, le fichier est illisible, même pour SIBYX. Notez-le : il ne peut pas être récupéré.</p><label class="mini full" for="imp" style="text-align:center;padding:11px;cursor:pointer">Restaurer une sauvegarde…</label><input id="imp" type="file" accept=".json,application/json" hidden></div>
+    h+=`<h2>Sauvegarde du jour</h2><p class="note">Chaque jour, un bouton « Sauvegarder » apparaît sur la caisse. Il envoie tout (clients, ventes, stock, photos <b>et le code gérant</b>) dans un fichier protégé, à garder sur WhatsApp. Si la tablette est perdue, cassée ou remise à zéro, on récupère tout avec ce fichier.</p>
+    ${conf.sauvMdp?`<p class="note">✓ Activée. Mot de passe de sauvegarde : <b>${voirMdp?esc(conf.sauvMdp):"••••••••"}</b> <button class="mini" data-voirmdp>${voirMdp?"Cacher":"Voir"}</button><br>Notez-le sur papier, chez vous : sans lui, le fichier ne s'ouvre pas.</p>`:""}
+    <div class="form"><input id="sm1" type="password" autocomplete="new-password" placeholder="${conf.sauvMdp?"Nouveau mot de passe":"Mot de passe de sauvegarde"} (8 caractères mini)"><input id="sm2" type="password" autocomplete="new-password" placeholder="Retaper le mot de passe"><button class="btn full" data-sauvmdp>${conf.sauvMdp?"Changer le mot de passe":"Activer la sauvegarde du jour"}</button>${conf.sauvMdp?`<button class="btn full" data-sauvj>💾 Sauvegarder maintenant</button>`:""}</div>`;
+    h+=`<h2>Sauvegarde manuelle</h2><p class="note">Toutes les données (clients, ventes, stock) sont sur cette tablette. Si elle est perdue ou cassée, tout est perdu. Téléchargez une sauvegarde chaque semaine et gardez le fichier en lieu sûr : il est confidentiel.${conf.sauv?" Dernière sauvegarde : "+dateC(conf.sauv)+".":" Aucune sauvegarde faite."}</p>
+    <div class="form"><input id="sp1" type="password" autocomplete="new-password" placeholder="Mot de passe de la sauvegarde (8 caractères mini)"><input id="sp2" type="password" autocomplete="new-password" placeholder="Retaper le mot de passe"><button class="btn full" data-export>Télécharger une sauvegarde protégée</button><p class="note full" style="margin:0">Sans ce mot de passe, le fichier est illisible, même pour SIBYX. Notez-le : il ne peut pas être récupéré.</p><label class="mini full" for="imp" style="text-align:center;padding:11px;cursor:pointer">Restaurer une sauvegarde…</label><input id="imp" type="file" accept=".json,.txt,application/json,text/plain" hidden></div>
     ${impData&&impData.verrou?`<div class="ecart ko">Sauvegarde protégée. Entrez son mot de passe :<div class="form" style="margin-top:8px"><input id="ipw" class="full" type="password" autocomplete="off" placeholder="Mot de passe de la sauvegarde"><button class="mini danger" data-impdech>Ouvrir le fichier</button><button class="mini" data-impno>Annuler</button></div></div>`:impData?`<div class="ecart ko">${impData.ancien?"⚠️ Ancienne sauvegarde non protégée. ":""}Ce fichier date du ${dateC(impData.date)}. Il va <b>remplacer</b> toutes les données de cette tablette.<div class="acts" style="justify-content:flex-start;margin-top:8px"><button class="mini danger" data-impok>Oui, remplacer</button><button class="mini" data-impno>Annuler</button></div></div>`:""}
     <p class="note">Les données restent uniquement sur cet appareil : elles ne sont envoyées nulle part, pas même à SIBYX. L'appli marche aussi sans internet. Utilisez toujours le même appareil au salon.</p>`;
   }
@@ -779,6 +805,13 @@ document.addEventListener("click",e=>{
   if("finpromo" in a){conf.promo=null;saveConf();toast("Offre terminée");return render()}
   if("savemod" in a){conf.modeles={merci:document.getElementById("mMerci").value.trim(),absent:document.getElementById("mAbsent").value.trim(),anniv:document.getElementById("mAnniv").value.trim()};conf.absJ=+document.getElementById("mAbsJ").value;saveConf();toast("Messages enregistrés");return render()}
   if("resetmod" in a){conf.modeles=null;saveConf();toast("Messages d'origine remis");return render()}
+  if("voirmdp" in a){voirMdp=!voirMdp;return render()}
+  if("sauvmdp" in a){if(!ouvert)return;const m1=document.getElementById("sm1").value,m2=document.getElementById("sm2").value;if(m1.length<8){toast("Mot de passe : 8 caractères minimum");return}if(m1!==m2){toast("Les deux mots de passe sont différents");return}
+    conf.sauvMdp=m1;saveConf();sauvPrete=null;voirMdp=true;toast("Sauvegarde du jour activée");return render()}
+  if("sauvj" in a){if(!conf.sauvMdp){vue="gerant";onglet="reglages";return render()}
+    if(sauvPrete){partagerSauv(sauvPrete).then(r=>{if(r==="ok")sauvOk();render()});return}
+    b.disabled=true;b.textContent="Préparation…";
+    fichierSauvegarde(conf.sauvMdp,"txt").then(f=>{sauvPrete=f;return partagerSauv(f)}).then(r=>{if(r==="ok")sauvOk();else toast("Appuyez sur « Envoyer sur WhatsApp »");render()}).catch(()=>{sauvPrete=null;toast("Sauvegarde impossible");render()});return}
   if("export" in a){const m1=document.getElementById("sp1").value,m2=document.getElementById("sp2").value;if(m1.length<8){toast("Mot de passe : 8 caractères minimum");return}if(m1!==m2){toast("Les deux mots de passe sont différents");return}
     b.disabled=true;telechargerSauvegarde(m1).then(()=>{conf.sauv=Date.now();saveConf();toast("Sauvegarde protégée téléchargée");render()}).catch(()=>{b.disabled=false;toast("Sauvegarde impossible")});return}
   if("impdech" in a){const m=document.getElementById("ipw").value;b.disabled=true;dechiffrer(impData.verrou,m).then(x=>{impData=controlerSauvegarde({...x,chiffre:true});render()}).catch(()=>{b.disabled=false;toast("Mot de passe incorrect ou fichier abîmé")});return}

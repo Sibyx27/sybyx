@@ -1,7 +1,7 @@
 // Balila Barber Street — mode hors-ligne.
 // Avec internet : on prend toujours la dernière version (et on la garde en réserve).
 // Sans internet : on sert la copie gardée sur l'appareil.
-const RESERVE = "bbs-v9";
+const RESERVE = "bbs-v10";
 const FICHIERS = ["./", "./index.html", "./manifest.webmanifest", "./icone.svg", "./icone-192.png", "./icone-512.png",
   "./polices/figtree-latin-wght-normal.woff2", "./polices/figtree-latin-ext-wght-normal.woff2",
   "./polices/bricolage-grotesque-latin-wght-normal.woff2", "./polices/bricolage-grotesque-latin-ext-wght-normal.woff2"];
