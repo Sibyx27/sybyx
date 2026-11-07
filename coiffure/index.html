@@ -2,16 +2,16 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PppSbUKFZK1MwyHmDJaMP1YHZqvmkX8iB3SWa1sshko=' 'sha256-aqbsRKH+F8NwkBxMs5f1i6blkztw3YlZtPr/Bcuzw2o='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PppSbUKFZK1MwyHmDJaMP1YHZqvmkX8iB3SWa1sshko=' 'sha256-49koukkjNrS0PHV8TUvcC8ws3ZWKk7R2dwupobFGTkM='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#121318">
-<meta property="og:title" content="Votre salon · Application de gestion">
+<meta property="og:title" content="Thiam Barber · Application de gestion">
 <meta property="og:description" content="Caisse, rendez-vous, fidélité, stock et bilan du salon. Une application SIBYX.">
-<meta name="description" content="Application de gestion de salon de coiffure, développée par SIBYX Intelligence Digitale.">
+<meta name="description" content="Application de gestion du salon Thiam Barber, développée par SIBYX Intelligence Digitale.">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>Gestion du salon</title>
+<title>Gestion Thiam Barber</title>
 <script>
 // Thème : auto (réglage de l'appareil), soir (sombre de 19 h à 7 h), clair, sombre
 (function(){var m="auto";try{m=localStorage.getItem("cf1:theme")||"auto"}catch(e){}
@@ -207,7 +207,7 @@ pre.wa{white-space:pre-wrap;background:var(--surface);border:1px solid var(--lig
 
 <header>
   <span class="poteau" aria-hidden="true"></span>
-  <div><div class="marque"><span id="nomSalon">Mon salon</span> <span class="bbs" id="initSalon">M.S</span></div><div class="sous" id="date"></div><div class="sign">Une application <b>SIBYX</b></div></div>
+  <div><div class="marque"><span id="nomSalon">Thiam Barber</span> <span class="bbs" id="initSalon">T.B</span></div><div class="sous" id="date"></div><div class="sign">Une application <b>SIBYX</b></div></div>
   <button class="theme" id="themeBtn" data-theme-btn aria-label="Changer l'affichage clair / sombre"></button>
 </header>
 <div id="bandeau"></div>
@@ -223,7 +223,7 @@ pre.wa{white-space:pre-wrap;background:var(--surface);border:1px solid var(--lig
 </div></main>
 <footer class="credit">
   <div class="sx"><span class="sxm">SIBYX</span><span>Intelligence Digitale</span></div>
-  <p>Application conçue et développée par SIBYX pour <span id="pourSalon">votre salon</span>.</p>
+  <p>Application conçue et développée par SIBYX pour <span id="pourSalon">Thiam Barber</span>.</p>
   <p>Contact : <span class="sel num">+223 83 72 81 39</span> · <span class="sel">mistercamara27@gmail.com</span></p>
 </footer>
 <div class="panier" id="panier" hidden></div>
@@ -248,7 +248,7 @@ const PAIES=["Espèces","Orange Money","Wave"];
 const CATS=["Produits (stock)","Électricité","Loyer","Matériel","Entretien","Salaire","Autre"];
 
 // ———— Configuration (prix d'exemple, à remplacer par les vrais) ————
-const CONF_DEFAUT={code:"1234",fid:10,par:500,demo:true,salon:"Mon salon",tel:"",
+const CONF_DEFAUT={code:"1234",fid:10,par:500,demo:true,salon:"Thiam Barber",tel:"",
   // Les 3 coiffeurs du salon (message du gérant, 07/11/2026). Part du coiffeur : 50 % par défaut, à régler dans Gérant → Réglages.
   coiffeurs:[{id:"c1",n:"Thiam",pct:50},{id:"c2",n:"Justin",pct:50},{id:"c3",n:"Bengali",pct:50}],
   // Tarifs réels donnés par le gérant (07/11/2026).
