@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PppSbUKFZK1MwyHmDJaMP1YHZqvmkX8iB3SWa1sshko=' 'sha256-m2scLjR03deZuQFr27HFKAn9XzQ4j+GCGh9IVZawSWU='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PppSbUKFZK1MwyHmDJaMP1YHZqvmkX8iB3SWa1sshko=' 'sha256-tP1qizZzpRKbCPDFiX081W4GzDniAO0ZV/EXJh21vSI='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -587,10 +587,11 @@ function vFiche(t){
 }
 
 function vAssistant(){
-  const pas=`<p class="sous" style="margin-top:18px">Étape ${etapeA} sur 3</p>`;
+  const pas=`<p class="sous" style="margin-top:18px">Étape ${etapeA} sur 4</p>`;
   if(etapeA===1)return pas+`<h2>Bienvenue ! Votre salon</h2><div class="form"><input id="waSalon" class="full" placeholder="Nom du salon" value="${esc(conf.salon||"")}"><input id="waTel" class="full" inputmode="tel" placeholder="Numéro WhatsApp du salon (facultatif)" value="${esc(conf.tel||"")}"><button class="go full" data-assist="1">Suivant</button></div><p class="note">Le numéro WhatsApp sert à la page de réservation. Il se change plus tard dans Réglages.</p>`;
   if(etapeA===2)return pas+`<h2>Vos coiffeurs</h2><div class="form"><div id="waListe" class="full" style="display:flex;flex-direction:column;gap:8px">${actifs(conf.coiffeurs).map(c=>`<input data-wac value="${esc(c.n)}" placeholder="Nom du coiffeur">`).join("")}</div><button class="btn full" data-assist="plus">+ Un autre coiffeur</button><button class="sec" data-assist="retour">Retour</button><button class="go" data-assist="2">Suivant</button></div><p class="note">Laissez une case vide pour retirer un coiffeur. Les parts (%) se règlent dans Réglages.</p>`;
-  return pas+`<h2>Code du gérant</h2><p class="note">Ce code protège la recette et les réglages. Choisissez-le vous-même et notez-le : il ne peut pas être récupéré.</p><div class="form"><input id="waCode" class="full" type="password" inputmode="numeric" placeholder="Code (6 à 8 chiffres)"><input id="waCode2" class="full" type="password" inputmode="numeric" placeholder="Retaper le code"><button class="sec" data-assist="retour">Retour</button><button class="go" data-assist="3">Terminer</button></div><p class="note">Les prix des prestations et les produits se changent ensuite dans Gérant → Réglages et Stock.</p>`;
+  if(etapeA===4)return pas+`<h2>Sauvegarde du jour</h2><p class="note">Toutes les données restent <b>uniquement sur cet appareil</b>. Personne d'autre ne les voit, même pas SIBYX. Si l'appareil est perdu, cassé ou remis à zéro, seule la sauvegarde permet de tout récupérer.</p><p class="note">Chaque jour, un bouton « Sauvegarder » apparaîtra sur la caisse. Il crée un fichier protégé que vous gardez sur <b>votre</b> WhatsApp. Choisissez le mot de passe de ce fichier et <b>notez-le sur papier</b>, chez vous : sans lui, la sauvegarde ne s'ouvre pas.</p><div class="form"><input id="waS1" class="full" type="password" autocomplete="new-password" placeholder="Mot de passe de sauvegarde (8 caractères mini)"><input id="waS2" class="full" type="password" autocomplete="new-password" placeholder="Retaper le mot de passe"><button class="go full" data-assist="4">Terminer</button></div>`;
+  return pas+`<h2>Code du gérant</h2><p class="note">Ce code protège la recette et les réglages. Choisissez-le vous-même et notez-le : il ne peut pas être récupéré.</p><div class="form"><input id="waCode" class="full" type="password" inputmode="numeric" placeholder="Code (6 à 8 chiffres)"><input id="waCode2" class="full" type="password" inputmode="numeric" placeholder="Retaper le code"><button class="sec" data-assist="retour">Retour</button><button class="go" data-assist="3">Suivant</button></div><p class="note">Les prix des prestations et les produits se changent ensuite dans Gérant → Réglages et Stock.</p>`;
 }
 function vVerrou(){return`<div class="verrou"><h2>Espace gérant</h2><label for="code" class="sous">Entrez le code</label><input id="code" type="password" inputmode="numeric" maxlength="8" autocomplete="off"><div class="err" id="err">${blocageRestant()?"Trop d'essais. Réessayez dans "+Math.ceil(blocageRestant()/60000)+" min.":""}</div><button class="go" data-ouvrir style="max-width:200px">Ouvrir</button>${conf.demo?`<p class="note">Code de la démo : 1234</p>`:""}</div>`}
 
@@ -849,7 +850,9 @@ document.addEventListener("click",e=>{
       const anc=actifs(conf.coiffeurs);anc.forEach((c,k)=>{if(noms[k])c.n=noms[k];else c.off=true});noms.slice(anc.length).forEach(n=>conf.coiffeurs.push({id:"c"+uid(),n,pct:50}));etapeA=3}
     else if(a.assist==="plus"){const l=document.getElementById("waListe");const x=document.createElement("input");x.dataset.wac="";x.placeholder="Nom du coiffeur";l.appendChild(x);x.focus();return}
     else if(a.assist==="3"){const v=document.getElementById("waCode").value.trim(),v2=document.getElementById("waCode2").value.trim();if(!/^\d{6,8}$/.test(v)){toast("6 à 8 chiffres");return}if(v!==v2){toast("Les deux codes sont différents");return}if(/^(\d)\1+$/.test(v)||"0123456789".includes(v)||"9876543210".includes(v)){toast("Code trop facile à deviner");return}
-      definirCode(v).then(()=>{conf.assistant=false;conf.essais=0;conf.bloque=0;etapeA=1;saveConf();toast("C'est prêt !");vue="caisse";ouvert=false;render()});return}
+      definirCode(v).then(()=>{conf.essais=0;conf.bloque=0;etapeA=4;saveConf();render()});return}
+    else if(a.assist==="4"){const m1=document.getElementById("waS1").value,m2=document.getElementById("waS2").value;if(m1.length<8){toast("Mot de passe : 8 caractères minimum");return}if(m1!==m2){toast("Les deux mots de passe sont différents");return}
+      conf.sauvMdp=m1;conf.assistant=false;etapeA=1;saveConf();sauvPrete=null;toast("C'est prêt !");vue="caisse";ouvert=false;return render()}
     else if(a.assist==="retour"){etapeA=Math.max(1,etapeA-1)}
     saveConf();return render()}
   if("savecoif" in a){actifs(conf.coiffeurs).forEach(c=>{c.n=document.getElementById("cn_"+c.id).value.trim()||c.n;c.pct=+document.getElementById("cp_"+c.id).value});saveConf();toast("Coiffeurs enregistrés");return render()}
