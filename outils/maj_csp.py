@@ -15,6 +15,10 @@ PAGES = {
                       "img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'",
     "bbs/carte.html": "default-src 'none'; script-src {h}; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'",
     "bbs/reserver.html": "default-src 'none'; script-src {h}; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'",
+    "coiffure/index.html": "default-src 'none'; script-src {h}; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; "
+                      "img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'",
+    "coiffure/carte.html": "default-src 'none'; script-src {h}; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'",
+    "coiffure/reserver.html": "default-src 'none'; script-src {h}; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'",
 }
 META = re.compile(r'(<meta http-equiv="Content-Security-Policy" content=")[^"]*(">)')
 
