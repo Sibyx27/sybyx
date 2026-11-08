@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PppSbUKFZK1MwyHmDJaMP1YHZqvmkX8iB3SWa1sshko=' 'sha256-oo3UPX+yajLFsIKsa4/cxX8lZDFgoRt2Jyg75PeJTik='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PppSbUKFZK1MwyHmDJaMP1YHZqvmkX8iB3SWa1sshko=' 'sha256-kJFnmHxqtfxbXoL44stlXH+S73ThAA6p1f/fgnZfNH8='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -56,7 +56,7 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var
 .poteau{width:10px;height:36px;border-radius:5px;background:repeating-linear-gradient(135deg,var(--rouge) 0 6px,var(--surface) 6px 12px,var(--bleu) 12px 18px,var(--surface) 18px 24px);border:1px solid var(--ligne);flex-shrink:0}
 .marque{font-family:var(--display);font-weight:800;font-size:24px;line-height:1;letter-spacing:-.01em}
 .sous{font-size:12px;color:var(--encre-3)}
-.bbs{display:inline-block;vertical-align:middle;font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 7px;border-radius:5px;border:1.5px solid var(--encre);margin-left:4px;background:linear-gradient(90deg,var(--rouge) 0 33%,var(--surface) 33% 66%,var(--bleu) 66%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bbs{display:inline-block;vertical-align:middle;font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 7px;border-radius:5px;border:1.5px solid var(--encre);margin-left:4px;color:var(--rouge)}
 .demo{margin-top:4px;background:var(--rouge-doux);color:var(--rouge);border-radius:10px;padding:10px 12px;font-size:13px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .demo button{font-weight:700;text-decoration:underline}
 
@@ -127,7 +127,7 @@ h2 small{font-family:var(--body);font-size:12px;font-weight:500;color:var(--encr
 .form label.sous{align-self:center}
 .btn{background:var(--surface);border:1px solid var(--encre);color:var(--encre);font-weight:700;border-radius:8px;padding:11px}
 
-.tabs{display:flex;gap:4px;overflow-x:auto;margin-top:6px;padding-bottom:2px}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;padding-bottom:2px}
 .tabs button{padding:8px 12px;border-radius:8px;font-size:13px;font-weight:600;color:var(--encre-2);white-space:nowrap}
 .tabs button[aria-pressed="true"]{background:var(--surface);color:var(--rouge);box-shadow:inset 0 0 0 1px var(--ligne)}
 .kpis{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--ligne);border:1px solid var(--ligne);border-radius:12px;overflow:hidden;margin-top:12px}
@@ -311,7 +311,7 @@ function semerDemo(){
 let vue="caisse", ouvert=false, onglet="bilan";
 let panier=[], coif=null, paie="Espèces", ctel="", cnom="", offrir=false, rdvLie=null;
 let confAnnul=null, confReset=false, recherche="";
-let ratD=null, annulCode=null, sansNum=null, lierT=null, cpar="", cbon=false, dernierPar=null, qCoif="", confDel=null, editProd=null, etapeA=1, cok=false, cann="", dernier=null, ficheTel=null, filtreC="tous", confSup=false, impData=null, voirMdp=false;
+let editMat=null, ratD=null, annulCode=null, sansNum=null, lierT=null, cpar="", cbon=false, dernierPar=null, qCoif="", confDel=null, editProd=null, etapeA=1, cok=false, cann="", dernier=null, ficheTel=null, filtreC="tous", confSup=false, impData=null, voirMdp=false;
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.k);toast.k=setTimeout(()=>t.hidden=true,1800)}
 const actifs=a=>a.filter(x=>!x.off);
 const coifN=id=>(conf.coiffeurs.find(c=>c.id===id)||{n:"?"}).n;
@@ -476,8 +476,9 @@ function render(){
 
 const estBas=p=>p.stock!=null&&p.stock<=(p.seuil??2);
 const aRacheter=()=>conf.produits.filter(estBas);
-function alerteStock(){const l=aRacheter();if(!l.length)return"";
-  return`<div class="alerte" role="status"><b>Stock presque épuisé</b><span>${l.map(p=>`${esc(p.n)} (${p.stock})`).join(" · ")}</span></div>`}
+const matBas=()=>(conf.materiel||[]).filter(estBas);
+function alerteStock(){const l=aRacheter().concat(matBas());if(!l.length)return"";
+  return`<div class="alerte" role="status"><b>Bientôt épuisé, à racheter</b><span>${l.map(p=>`${esc(p.n)} (${p.stock})`).join(" · ")}</span></div>`}
 function blocClient(){let h="";
   const f=fidelite(ctel), n=telNet(ctel).length===8;
   h+=`<div class="lbl">Client</div><div class="client boite${n?" connu":""}"><input id="ctel" inputmode="tel" placeholder="Téléphone du client" value="${esc(ctel)}"><input id="cnom" placeholder="Prénom (ou chercher un nom)" value="${esc(cnom)}" autocomplete="off"><div id="sugg" class="sugg">${suggestions()}</div>`;
@@ -598,7 +599,7 @@ function vAssistant(){
 function vVerrou(){return`<div class="verrou"><h2>Espace gérant</h2><label for="code" class="sous">Entrez le code</label><input id="code" type="password" inputmode="numeric" maxlength="8" autocomplete="off"><div class="err" id="err">${blocageRestant()?"Trop d'essais. Réessayez dans "+Math.ceil(blocageRestant()/60000)+" min.":""}</div><button class="go" data-ouvrir style="max-width:200px">Ouvrir</button>${conf.demo?`<p class="note">Code de la démo : 1234</p>`:""}</div>`}
 
 function vGerant(){
-  const T={bilan:"Bilan",msg:"Messages",coif:"Coiffeurs",dep:"Dépenses",caisse:"Caisse",stock:"Stock",histo:"7 jours",rat:"Jours passés",reglages:"Réglages"};
+  const T={bilan:"Bilan",msg:"Messages",coif:"Coiffeurs",dep:"Dépenses",caisse:"Caisse",stock:"Stock",mat:"Matériel",histo:"7 jours",rat:"Jours passés",reglages:"Réglages"};
   let h=(!conf.demo&&conf.codeDefaut)?`<div class="alerte-code">Le code est encore 1234, connu de tous. Changez-le dans <b>Réglages</b>.</div>`:(!conf.demo&&conf.codeCourt)?`<div class="alerte-code">Votre code est trop court. Passez à un code de <b>6 chiffres</b> dans Réglages.</div>`:"";
   h+=bandeauSauv();
   h+=`<div class="tabs">${Object.entries(T).map(([k,l])=>`<button data-tab="${k}" aria-pressed="${k===onglet}">${l}</button>`).join("")}<button data-fermer>Verrouiller</button></div>`;
@@ -641,7 +642,7 @@ function vGerant(){
     const connus=conf.produits.filter(p=>p.stock!=null), vAchat=connus.reduce((a,p)=>a+(p.achat||0)*p.stock,0), vVente=connus.reduce((a,p)=>a+p.p*p.stock,0), bas=aRacheter();
     h+=`<div class="kpis"><div class="kpi"><div class="l">Argent dans le stock</div><div class="v num">${F(vAchat)}</div></div><div class="kpi"><div class="l">Si tout est vendu</div><div class="v num">${F(vVente)}</div></div>
       <div class="kpi" style="grid-column:1/-1"><div class="l">À racheter</div><div class="v num" style="color:${bas.length?"var(--alerte)":"var(--ok)"}">${bas.length?bas.length+" produit"+(bas.length>1?"s":""):"Rien pour l'instant"}</div></div></div>`;
-    if(!conf.produits.length)h+=`<p class="note">Aucun produit pour l'instant. Ajoutez les produits que vous vendez (gel, crèmes, lames…) plus bas : ils apparaîtront sur la caisse.</p>`;
+    if(!conf.produits.length)h+=`<p class="note">Aucun produit pour l'instant. Ajoutez plus bas les produits que vous <b>vendez</b> aux clients : ils apparaîtront sur la caisse. Les lames et produits utilisés au salon se gèrent dans l'onglet <b>Matériel</b>.</p>`;
     else h+=`<h2>J'ai acheté</h2><div class="form">
       <select id="aP" class="full" aria-label="Produit acheté">${conf.produits.map(p=>`<option value="${p.id}">${esc(p.n)}</option>`).join("")}</select>
       <input id="aQ" type="number" min="1" inputmode="numeric" placeholder="Quantité" aria-label="Quantité achetée"><input id="aM" type="number" min="0" inputmode="numeric" placeholder="Prix payé au total" aria-label="Prix payé au total pour cette quantité">
@@ -654,6 +655,27 @@ function vGerant(){
     const ach=(conf.achats||[]).slice(-8).reverse();
     h+=`<h2>Derniers achats</h2><div class="liste">`+(ach.length?ach.map(a=>`<div class="li"><span class="h num">${new Date(a.t).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</span><span class="d">${a.q} × ${esc(a.n)}</span><span class="m num">${F(a.m)}</span></div>`).join(""):`<div class="vide">Aucun achat noté pour l'instant.</div>`)+`</div>`;
     h+=`<h2>Nouveau produit</h2><div class="form"><input id="npN" class="full" placeholder="Nom du produit"><input id="npS" type="number" inputmode="numeric" placeholder="Quantité"><input id="npA" type="number" inputmode="numeric" placeholder="Prix d'achat d'1 unité"><input id="npP" class="full" type="number" inputmode="numeric" placeholder="Prix de vente à l'unité"><button class="btn full" data-addprod>Ajouter</button></div>`;
+  }
+  if(onglet==="mat"){
+    // Matériel et produits UTILISÉS au salon (pas vendus) : lames, alcool, talc, serviettes…
+    const M=conf.materiel=conf.materiel||[],moisK=cleJ().slice(0,7),duMois=t=>cleJ(new Date(t)).slice(0,7)===moisK;
+    const depM=(conf.achatsM||[]).filter(a=>duMois(a.t)).reduce((x,a)=>x+a.m,0),us={};(conf.usages||[]).filter(u=>duMois(u.t)).forEach(u=>{us[u.id]=(us[u.id]||0)+u.q});
+    const coutU=M.reduce((x,m)=>x+(us[m.id]||0)*(m.achat||0),0),bas=matBas();
+    h+=`<p class="note">Ici, tout ce que le salon <b>utilise</b> sans le vendre : lames, alcool, talc, serviettes, gel du salon… Vous remplissez vous-même.</p>`;
+    h+=`<div class="kpis"><div class="kpi"><div class="l">Acheté ce mois</div><div class="v num">${F(depM)}</div></div><div class="kpi"><div class="l">Utilisé ce mois</div><div class="v num">${F(coutU)}</div></div>
+      <div class="kpi" style="grid-column:1/-1"><div class="l">À racheter</div><div class="v num" style="color:${bas.length?"var(--alerte)":"var(--ok)"}">${bas.length?bas.map(b=>esc(b.n)).join(", "):"Rien pour l'instant"}</div></div></div>`;
+    if(M.length)h+=`<h2>J'ai acheté du matériel</h2><div class="form">
+      <select id="amP" class="full" aria-label="Matériel acheté">${M.map(m=>`<option value="${m.id}">${esc(m.n)}</option>`).join("")}</select>
+      <input id="amQ" type="number" min="1" inputmode="numeric" placeholder="Quantité (${"ex. 10 lames"})"><input id="amM" type="number" min="0" inputmode="numeric" placeholder="Prix payé au total">
+      <label class="full sous" style="display:flex;gap:8px;align-items:center"><input id="amEsp" type="checkbox" checked style="width:auto"> Payé avec l'argent de la caisse</label>
+      <button class="btn full" data-achatm>Ajouter au stock</button></div><p class="note">Le stock augmente, le prix à l'unité est calculé, et la dépense est notée dans la journée.</p>`;
+    h+=`<h2>Mon matériel</h2><div class="liste">`+(M.length?M.map((m,i)=>{const b=estBas(m);return`<div class="li" style="flex-wrap:wrap"><span class="d">${esc(m.n)} ${b?`<span class="pill absent">À racheter</span>`:""}<small>${m.achat?F(m.achat)+" l'unité · ":""}utilisé ce mois : ${us[m.id]||0}</small><small>Alerte quand il en reste ${m.seuil??2} ou moins</small></span>
+      <span class="m num" style="color:${b?"var(--alerte)":"inherit"}">${m.stock==null?"?":m.stock}</span><span class="acts" style="width:100%"><button class="mini" data-use="${i}" aria-label="J'ai utilisé un ${esc(m.n)}">Utilisé −1</button><button class="mini" data-mstock="${i}:1" aria-label="Ajouter un ${esc(m.n)}">+1</button><button class="mini" data-mseuil="${i}">Alerte ${m.seuil??2}</button><button class="mini" data-editmat="${m.id}">Modifier</button></span></div>${editMat===m.id?`<div class="form" style="padding:10px 0 14px;border-bottom:1px solid var(--ligne)"><input id="emN" class="full" value="${esc(m.n)}" aria-label="Nom"><label class="sous" for="emS">Quantité en stock</label><input id="emS" type="number" inputmode="numeric" value="${m.stock??""}"><label class="sous" for="emA">Prix d'achat (1 unité)</label><input id="emA" type="number" inputmode="numeric" value="${m.achat||0}"><button class="btn" data-savemat="${m.id}">Enregistrer</button><button class="sec" data-delmat="${m.id}">${confDel==="m"+m.id?"Sûr ? Toucher encore":"Retirer"}</button></div>`:""}`}).join(""):`<div class="vide">Rien pour l'instant. Ajoutez votre premier matériel ci-dessous.</div>`)+`</div>`;
+    if(M.length)h+=`<p class="note">Touchez « Utilisé −1 » quand vous ouvrez une nouvelle lame, un nouveau flacon… L'appli calcule ce que ça coûte au salon chaque mois.</p>`;
+    h+=`<h2>Ajouter du matériel</h2><div class="chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">${["Lames","Alcool","Talc","Serviettes","Gel du salon","Crème après-rasage","Désinfectant"].filter(n=>!M.some(m=>m.n.toLowerCase()===n.toLowerCase())).map(n=>`<button class="mini" data-nomm="${esc(n)}">${esc(n)}</button>`).join("")}</div>
+      <div class="form"><input id="nmN" class="full" placeholder="Nom (ex. Lames)"><input id="nmS" type="number" inputmode="numeric" placeholder="Quantité en stock"><input id="nmA" type="number" inputmode="numeric" placeholder="Prix d'1 unité (facultatif)"><button class="btn full" data-addmat>Ajouter</button></div>`;
+    const ach=(conf.achatsM||[]).slice(-6).reverse();
+    if(ach.length)h+=`<h2>Derniers achats de matériel</h2><div class="liste">`+ach.map(a=>`<div class="li"><span class="h num">${new Date(a.t).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</span><span class="d">${a.q} × ${esc(a.n)}</span><span class="m num">${F(a.m)}</span></div>`).join("")+`</div>`;
   }
   if(onglet==="rat"){
     // Saisie après coup des jours notés sur le cahier (31 derniers jours, jamais aujourd'hui ni le futur)
@@ -725,7 +747,7 @@ function bilanTexte(){
   t+=`\nPar coiffeur :\n`;conf.coiffeurs.forEach(c=>{const v=s.parC[c.id];if(v)t+=`• ${c.n} : ${v.n} client${v.n>1?"s":""}, ${F(v.ca)}\n`});
   t+=`\nBénéfice sur les produits : ${F(s.margeP)}`;
   t+=`\nDépenses : ${F(s.dep)}\nReste : ${F(s.net)}`;
-  const bas=aRacheter();if(bas.length)t+=`\n\nÀ racheter : ${bas.map(p=>p.n+" ("+p.stock+")").join(", ")}`;
+  const bas=aRacheter().concat(matBas());if(bas.length)t+=`\n\nÀ racheter : ${bas.map(p=>p.n+" ("+p.stock+")").join(", ")}`;
   if(s.avances)t+=`\nAvances aux coiffeurs : ${F(s.avances)}`;
   {const an=jour.ventes.filter(x=>x.annule);if(an.length)t+=`\nPassages annulés : ${an.length} (${F(an.reduce((a,x)=>a+(Number(x.total)||0),0))})`}
   if(s.attendu!=null&&jour.reel!=null){const e=jour.reel-s.attendu;t+=`\nCaisse : ${e===0?"juste":"écart "+(e>0?"+":"")+F(e)}`}
@@ -843,7 +865,24 @@ document.addEventListener("click",e=>{
   if("ouvrir" in a){const er=document.getElementById("err"),v=document.getElementById("code").value;if(blocageRestant()){er.textContent="Trop d'essais. Réessayez dans "+Math.ceil(blocageRestant()/60000)+" min.";return}
     b.disabled=true;verifierCode(v).then(okc=>{b.disabled=false;if(okc){conf.essais=0;conf.bloque=0;saveConf();ouvert=true;derniereAction=Date.now();onglet="bilan";render()}else{essaiRate();const r=5-(conf.essais%5);er.textContent=blocageRestant()?"Trop d'essais. Réessayez dans "+Math.ceil(blocageRestant()/60000)+" min.":"Code incorrect ("+r+" essai"+(r>1?"s":"")+" avant blocage)"}});return}
   if("fermer" in a){ouvert=false;vue="caisse";return render()}
-  if(a.tab){confDel=null;editProd=null;onglet=a.tab;return render()}
+  if(a.tab){confDel=null;editProd=null;editMat=null;onglet=a.tab;return render()}
+  if(a.nomm){const el=document.getElementById("nmN");if(el){el.value=a.nomm;document.getElementById("nmS").focus()}return}
+  if("addmat" in a){if(!ouvert)return;const n=document.getElementById("nmN").value.trim(),sv=document.getElementById("nmS").value,av=document.getElementById("nmA").value;if(!n){toast("Écrivez le nom");return}
+    conf.materiel=conf.materiel||[];if(conf.materiel.some(m=>m.n.toLowerCase()===n.toLowerCase())){toast("Déjà dans la liste");return}
+    conf.materiel.push({id:uid(),n:n.slice(0,40),stock:sv===""?null:Math.max(0,Math.floor(+sv)),achat:Math.max(0,Math.round(+av||0)),seuil:2});saveConf();toast(n+" ajouté");return render()}
+  if("achatm" in a){if(!ouvert)return;const m=(conf.materiel||[]).find(x=>x.id===document.getElementById("amP").value),q=Math.floor(+document.getElementById("amQ").value),mv=document.getElementById("amM").value,mm=+mv,esp=document.getElementById("amEsp").checked;
+    if(!m||!(q>0)||mv===""||!(mm>=0)){toast("Indiquez la quantité et le prix payé");return}
+    m.stock=(m.stock??0)+q;if(mm>0)m.achat=Math.round(mm/q);conf.achatsM=(conf.achatsM||[]).concat({t:Date.now(),id:m.id,n:m.n,q,m:mm}).slice(-300);saveConf();
+    if(mm>0){jour.dep.push({t:Date.now(),cat:"Matériel",m:mm,note:"Achat "+q+" × "+m.n,esp});saveJ()}
+    toast(q+" × "+m.n+" ajouté au stock");return render()}
+  if(a.use!=null&&a.use!==""){if(!ouvert)return;const m=(conf.materiel||[])[+a.use];if(!m)return;if(m.stock!=null&&m.stock<=0){toast("Stock à 0 : notez d'abord un achat");return}
+    if(m.stock!=null)m.stock--;conf.usages=(conf.usages||[]).concat({t:Date.now(),id:m.id,q:1}).slice(-2000);saveConf();toast(m.n+" : 1 utilisé"+(m.stock!=null?", reste "+m.stock:""));return render()}
+  if(a.mstock){if(!ouvert)return;const[i,d]=a.mstock.split(":"),m=(conf.materiel||[])[+i];if(!m)return;m.stock=Math.max(0,(m.stock??0)+ +d);saveConf();return render()}
+  if(a.mseuil){if(!ouvert)return;const m=(conf.materiel||[])[+a.mseuil];if(!m)return;const L=[0,1,2,3,5,10],c=m.seuil??2;m.seuil=L[(L.indexOf(c)+1)%L.length];saveConf();return render()}
+  if(a.editmat){editMat=editMat===a.editmat?null:a.editmat;confDel=null;return render()}
+  if(a.savemat){if(!ouvert)return;const m=(conf.materiel||[]).find(x=>x.id===a.savemat);if(!m)return;const n=document.getElementById("emN").value.trim(),sv=document.getElementById("emS").value;if(!n){toast("Écrivez le nom");return}
+    m.n=n.slice(0,40);m.stock=sv===""?null:Math.max(0,Math.floor(+sv));m.achat=Math.max(0,Math.round(+document.getElementById("emA").value||0));editMat=null;saveConf();toast("Enregistré");return render()}
+  if(a.delmat){if(!ouvert)return;if(confDel!=="m"+a.delmat){confDel="m"+a.delmat;return render()}conf.materiel=(conf.materiel||[]).filter(x=>x.id!==a.delmat);editMat=null;confDel=null;saveConf();toast("Retiré");return render()}
   if("ratok" in a){if(!ouvert||!ratD||ratD>=cleJ())return;const k="cf1:j:"+ratD,j=lire(k,{ventes:[],dep:[],fond:null,reel:null}),pay=document.getElementById("ratP").value,base=new Date(ratD+"T12:00:00").getTime();let n=0,tot=0;
     actifs(conf.coiffeurs).forEach(c=>{const items=[];document.querySelectorAll(`[data-rq^="${c.id}|"]`).forEach(el=>{const q=Math.floor(+el.value);if(q>0&&q<=200){const x=svc(el.dataset.rq.split("|")[1]);if(x)items.push({k:"s",id:x.id,n:x.n,p:x.p,q})}});
       const au=Math.floor(+(document.querySelector(`[data-ra="${c.id}"]`)||{}).value||0);if(au>0)items.push({k:"s",id:"autre",n:"Autre (cahier)",p:au,q:1});
