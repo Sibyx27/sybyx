@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PppSbUKFZK1MwyHmDJaMP1YHZqvmkX8iB3SWa1sshko=' 'sha256-kJFnmHxqtfxbXoL44stlXH+S73ThAA6p1f/fgnZfNH8='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PppSbUKFZK1MwyHmDJaMP1YHZqvmkX8iB3SWa1sshko=' 'sha256-3a5pvanGlp+s3V+/D3Br1VJNGR9HCzuNjellCKv0zlE='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -249,8 +249,8 @@ const CATS=["Produits (stock)","Électricité","Loyer","Matériel","Entretien","
 
 // ———— Configuration (prix d'exemple, à remplacer par les vrais) ————
 const CONF_DEFAUT={code:"1234",fid:5,par:500,demo:true,salon:"Thiam Barber",tel:"",
-  // Les 3 coiffeurs du salon (message du gérant, 07/11/2026). Part du coiffeur : 50 % par défaut, à régler dans Gérant → Réglages.
-  coiffeurs:[{id:"c1",n:"Thiam",pct:50},{id:"c2",n:"Justin",pct:50},{id:"c3",n:"Bengali",pct:50}],
+  // Les 3 coiffeurs du salon (message du gérant, 07/11/2026). Part du coiffeur : 35 % (demande du gérant, 18/11/2026), à régler dans Gérant → Réglages.
+  coiffeurs:[{id:"c1",n:"Thiam",pct:35},{id:"c2",n:"Justin",pct:35},{id:"c3",n:"Bengali",pct:35}],
   // Tarifs réels donnés par le gérant (07/11/2026).
   services:[
     {id:"e_simple",cat:"Enfants",n:"Coiffure simple enfant",p:500},
@@ -269,7 +269,9 @@ const MAJ=[
   // 07/11/2026 : nom du salon = Thiam Barber (si l'appli avait déjà été ouverte avec « Mon salon »)
   c=>{if(!c.salon||c.salon==="Mon salon")c.salon="Thiam Barber"},
   // 07/11/2026 : demande du gérant, la 5e visite est offerte (au lieu de la 10e)
-  c=>{c.fid=5}
+  c=>{c.fid=5},
+  // 18/11/2026 : demande du gérant, ses coiffeurs touchent 35 % (salaire fixe conservé si choisi)
+  c=>{(c.coiffeurs||[]).forEach(x=>{if(x.pct)x.pct=35})}
 ];
 (function(){const v=conf.v||0;if(v<MAJ.length){MAJ.slice(v).forEach(f=>{try{f(conf)}catch(e){}});conf.v=MAJ.length;saveConf()}})();
 
@@ -723,7 +725,7 @@ function vGerant(){
       <label class="sous" for="gOuv">Ouverture</label><label class="sous" for="gFerm">Fermeture</label><input id="gOuv" type="time" value="${esc(conf.ouv||"09:00")}"><input id="gFerm" type="time" value="${esc(conf.ferm||"21:00")}">
       <label class="sous" for="gDuree">Durée moyenne d'une coupe</label><select id="gDuree">${[10,15,20,25,30,40,45,60].map(n=>`<option value="${n}" ${n===(conf.duree||20)?"selected":""}>${n} min</option>`).join("")}</select>
       <label class="consent"><input type="checkbox" id="gSimple" ${conf.simple?"checked":""}> Mode simple : grandes tuiles, plus faciles à toucher</label><button class="btn full" data-savesalon>Enregistrer</button></div>`;
-    h+=`<h2>Coiffeurs</h2><div class="form">`+actifs(conf.coiffeurs).map(c=>`<input id="cn_${c.id}" value="${esc(c.n)}" aria-label="Nom du coiffeur"><div class="row"><select id="cp_${c.id}" aria-label="Part de ${esc(c.n)}">${[0,30,40,50,60,70].map(p=>`<option value="${p}" ${p===c.pct?"selected":""}>${p?p+" % pour lui":"Salaire fixe"}</option>`).join("")}</select><button class="mini${confDel==="c:"+c.id?" danger":""}" data-delcoif="${c.id}" aria-label="Retirer ${esc(c.n)}">${confDel==="c:"+c.id?"Confirmer":"Retirer"}</button></div>`).join("")+`<button class="btn full" data-savecoif>Enregistrer</button>
+    h+=`<h2>Coiffeurs <small>part en %, 0 = salaire fixe</small></h2><div class="form">`+actifs(conf.coiffeurs).map(c=>`<input id="cn_${c.id}" value="${esc(c.n)}" aria-label="Nom du coiffeur"><div class="row"><label style="display:flex;align-items:center;gap:8px;flex:1;white-space:nowrap">Sa part<input id="cp_${c.id}" type="number" inputmode="numeric" min="0" max="100" step="1" value="${c.pct}" style="width:6.5em;text-align:center" aria-label="Pourcentage pour ${esc(c.n)}">%</label><button class="mini${confDel==="c:"+c.id?" danger":""}" data-delcoif="${c.id}" aria-label="Retirer ${esc(c.n)}">${confDel==="c:"+c.id?"Confirmer":"Retirer"}</button></div>`).join("")+`<button class="btn full" data-savecoif>Enregistrer</button>
       <input id="ncoif" placeholder="Nom du nouveau coiffeur"><button class="btn" data-addcoif>+ Ajouter</button></div>`;
     const catsS=[...new Set(conf.services.map(x=>x.cat||"Autres"))];
     h+=`<h2>Prestations et prix</h2><p class="note">Mettre 0 pour un prix à confirmer au salon : il sera demandé à la caisse.</p>`+catsS.map(ct=>`<div class="lbl">${esc(ct)}</div><div class="form">`+conf.services.filter(x=>(x.cat||"Autres")===ct).map(x=>`<input id="sn_${x.id}" value="${esc(x.n)}" aria-label="Prestation"><div class="row"><input id="sp_${x.id}" type="number" inputmode="numeric" value="${x.p}" aria-label="Prix de ${esc(x.n)}"><button class="mini${confDel==="s:"+x.id?" danger":""}" data-delsvc="${x.id}" aria-label="Supprimer ${esc(x.n)}">${confDel==="s:"+x.id?"Confirmer":"×"}</button></div>`).join("")+`</div>`).join("")+`<div class="form" style="margin-top:10px"><button class="btn full" data-savesvc>Enregistrer les prix</button></div>`;
@@ -910,7 +912,7 @@ document.addEventListener("click",e=>{
   if(a.assist){
     if(a.assist==="1"){const n=document.getElementById("waSalon").value.trim(),t=telNet(document.getElementById("waTel").value);if(!n){toast("Écrivez le nom du salon");return}if(t&&t.length!==8){toast("Numéro à 8 chiffres");return}conf.salon=n;conf.tel=t;etapeA=2}
     else if(a.assist==="2"){const noms=[...document.querySelectorAll("[data-wac]")].map(x=>x.value.trim()).filter(Boolean);if(!noms.length){toast("Écrivez au moins un coiffeur");return}
-      const anc=actifs(conf.coiffeurs);anc.forEach((c,k)=>{if(noms[k])c.n=noms[k];else c.off=true});noms.slice(anc.length).forEach(n=>conf.coiffeurs.push({id:"c"+uid(),n,pct:50}));etapeA=3}
+      const anc=actifs(conf.coiffeurs);anc.forEach((c,k)=>{if(noms[k])c.n=noms[k];else c.off=true});noms.slice(anc.length).forEach(n=>conf.coiffeurs.push({id:"c"+uid(),n,pct:35}));etapeA=3}
     else if(a.assist==="plus"){const l=document.getElementById("waListe");const x=document.createElement("input");x.dataset.wac="";x.placeholder="Nom du coiffeur";l.appendChild(x);x.focus();return}
     else if(a.assist==="3"){const v=document.getElementById("waCode").value.trim(),v2=document.getElementById("waCode2").value.trim();if(!/^\d{6,8}$/.test(v)){toast("6 à 8 chiffres");return}if(v!==v2){toast("Les deux codes sont différents");return}if(/^(\d)\1+$/.test(v)||"0123456789".includes(v)||"9876543210".includes(v)){toast("Code trop facile à deviner");return}
       definirCode(v).then(()=>{conf.essais=0;conf.bloque=0;etapeA=4;saveConf();render()});return}
@@ -918,8 +920,8 @@ document.addEventListener("click",e=>{
       conf.sauvMdp=m1;conf.assistant=false;etapeA=1;saveConf();sauvPrete=null;toast("C'est prêt !");vue="caisse";ouvert=false;return render()}
     else if(a.assist==="retour"){etapeA=Math.max(1,etapeA-1)}
     saveConf();return render()}
-  if("savecoif" in a){actifs(conf.coiffeurs).forEach(c=>{c.n=document.getElementById("cn_"+c.id).value.trim()||c.n;c.pct=+document.getElementById("cp_"+c.id).value});saveConf();toast("Coiffeurs enregistrés");return render()}
-  if("addcoif" in a){const n=document.getElementById("ncoif").value.trim();if(!n){toast("Écrivez le nom");return}conf.coiffeurs.push({id:"c"+uid(),n,pct:50});saveConf();toast(n+" ajouté");return render()}
+  if("savecoif" in a){actifs(conf.coiffeurs).forEach(c=>{c.n=document.getElementById("cn_"+c.id).value.trim()||c.n;const p=Math.round(+document.getElementById("cp_"+c.id).value);c.pct=isFinite(p)?Math.min(100,Math.max(0,p)):c.pct});saveConf();toast("Coiffeurs enregistrés");return render()}
+  if("addcoif" in a){const n=document.getElementById("ncoif").value.trim();if(!n){toast("Écrivez le nom");return}conf.coiffeurs.push({id:"c"+uid(),n,pct:35});saveConf();toast(n+" ajouté");return render()}
   if(a.delcoif){if(confDel!=="c:"+a.delcoif){confDel="c:"+a.delcoif;return render()}if(actifs(conf.coiffeurs).length<2){toast("Il faut au moins un coiffeur");confDel=null;return render()}const c=conf.coiffeurs.find(x=>x.id===a.delcoif);c.off=true;if(coif===c.id)coif=null;confDel=null;saveConf();toast(c.n+" retiré (son historique reste)");return render()}
   if(a.delsvc){if(confDel!=="s:"+a.delsvc){confDel="s:"+a.delsvc;return render()}conf.services=conf.services.filter(x=>x.id!==a.delsvc);panier=panier.filter(i=>!(i.k==="s"&&i.id===a.delsvc));confDel=null;saveConf();toast("Prestation supprimée");return render()}
   if("addsvc" in a){const n=document.getElementById("nsN").value.trim(),pr=+document.getElementById("nsP").value||0;let ct=document.getElementById("nsC").value;if(ct==="__new")ct=document.getElementById("nsCN").value.trim();if(!n){toast("Écrivez le nom");return}if(!ct){toast("Écrivez le nom de la catégorie");return}
