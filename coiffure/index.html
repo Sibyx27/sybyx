@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PppSbUKFZK1MwyHmDJaMP1YHZqvmkX8iB3SWa1sshko=' 'sha256-3a5pvanGlp+s3V+/D3Br1VJNGR9HCzuNjellCKv0zlE='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PppSbUKFZK1MwyHmDJaMP1YHZqvmkX8iB3SWa1sshko=' 'sha256-niLaNGLjSVsZp35Xfbe/A/aZpf7qQiY6WjACUNM8qVo='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -481,9 +481,11 @@ const aRacheter=()=>conf.produits.filter(estBas);
 const matBas=()=>(conf.materiel||[]).filter(estBas);
 function alerteStock(){const l=aRacheter().concat(matBas());if(!l.length)return"";
   return`<div class="alerte" role="status"><b>Bientôt épuisé, à racheter</b><span>${l.map(p=>`${esc(p.n)} (${p.stock})`).join(" · ")}</span></div>`}
-function blocClient(){let h="";
+function blocClient(){const n=telNet(ctel).length===8;
+  return`<div class="lbl">Client</div><div class="client boite${n?" connu":""}" id="cliBoite"><input id="ctel" inputmode="tel" placeholder="Téléphone du client" value="${esc(ctel)}" autocomplete="off"><input id="cnom" placeholder="Prénom (ou chercher un nom)" value="${esc(cnom)}" autocomplete="off"><div id="sugg" class="sugg">${suggestions()}</div><div id="cliPlus" style="display:contents">${cliPlus()}</div></div>`}
+// Partie du bloc client qui change selon le numéro tapé (mise à jour sans toucher aux cases de saisie, pour ne pas fermer le clavier de la tablette)
+function cliPlus(){let h="";
   const f=fidelite(ctel), n=telNet(ctel).length===8;
-  h+=`<div class="lbl">Client</div><div class="client boite${n?" connu":""}"><input id="ctel" inputmode="tel" placeholder="Téléphone du client" value="${esc(ctel)}"><input id="cnom" placeholder="Prénom (ou chercher un nom)" value="${esc(cnom)}" autocomplete="off"><div id="sugg" class="sugg">${suggestions()}</div>`;
   if(n){h+=`<div class="fid"><span class="tampons">${Array.from({length:conf.fid},(_,i)=>`<i class="${i<f.v%conf.fid?"on":""}"></i>`).join("")}</span><span>${f.c?f.v+" visite"+(f.v>1?"s":""):"Nouveau client"}</span></div>`;
     if(f.pret)h+=`<label class="offert full" style="grid-column:1/-1"><input type="checkbox" id="offrir" ${offrir?"checked":""} style="width:auto"> ${conf.fid}e visite : prestation offerte</label>`;
     if(!f.c||!f.c.anniv)h+=`<input id="cann" inputmode="numeric" placeholder="Anniversaire jj/mm (facultatif)" value="${esc(cann)}" style="grid-column:1/-1">`;
@@ -491,8 +493,9 @@ function blocClient(){let h="";
     if(!f.c&&conf.par)h+=`<input id="cpar" inputmode="tel" placeholder="Envoyé par un client ? Son numéro (facultatif)" value="${esc(cpar)}" style="grid-column:1/-1">`;
     if(!f.c||!f.c.ok)h+=`<label class="consent"><input type="checkbox" id="cok" ${cok?"checked":""}> Le client accepte de recevoir les messages du salon sur WhatsApp (promos, rappels)</label>`;}
   if(!n)h+=`<p class="note" style="grid-column:1/-1;margin:0">Tapez le numéro : le client est enregistré tout seul à l'encaissement et sa visite compte pour la fidélité.</p>`;
-  h+=`</div>`;
   return h}
+function majClient(){const b=document.getElementById("cliBoite");if(!b)return render();
+  b.classList.toggle("connu",telNet(ctel).length===8);document.getElementById("cliPlus").innerHTML=cliPlus();document.getElementById("sugg").innerHTML=suggestions();if(vue==="caisse")rPanier()}
 function suggestions(){const d=String(ctel||"").replace(/\D/g,""),q=(cnom||"").trim().toLowerCase();if(d.length===8)return"";
   let l=[];if(d.length>=3)l=listeCli().filter(c=>c.t.includes(d.slice(-8)));else if(q.length>=2)l=listeCli().filter(c=>(c.nom||"").toLowerCase().includes(q));
   l=l.sort((a,b)=>(b.der||0)-(a.der||0)).slice(0,4);
@@ -760,7 +763,7 @@ function copier(txt,zoneId){const sel=()=>{const el=document.getElementById(zone
 
 // ———— Actions ————
 document.addEventListener("input",e=>{
-  if(e.target.id==="ctel"){ctel=e.target.value;const c=clients[telNet(ctel)];if(c&&!cnom){cnom=c.nom||"";}offrir=false;cbon=false;const pos=e.target.selectionStart;render();const el=document.getElementById("ctel");el.focus();el.setSelectionRange(pos,pos)}
+  if(e.target.id==="ctel"){ctel=e.target.value;const c=clients[telNet(ctel)];if(c&&!cnom){cnom=c.nom||"";const el=document.getElementById("cnom");if(el)el.value=cnom}offrir=false;cbon=false;majClient()}
   if(e.target.id==="cnom"){cnom=e.target.value;const z=document.getElementById("sugg");if(z)z.innerHTML=suggestions()}
   if(e.target.id==="cann")cann=e.target.value;
   if(e.target.id==="cpar")cpar=e.target.value;
