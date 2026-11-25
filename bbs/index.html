@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nqNMLqGXMbk9+qCrXgAhPHAGkaEHoP6Cl2EF21FwtRs=' 'sha256-fb8aKyK83YHqtJTjtzoFmFyzZ8SMtuR54xOF2Y1qb0U='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nqNMLqGXMbk9+qCrXgAhPHAGkaEHoP6Cl2EF21FwtRs=' 'sha256-0VX+bZi/yHgRX7oDVlHRy+o0dwrawmekxXVS5Vt1kjc='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -230,6 +230,8 @@ pre.wa{white-space:pre-wrap;background:var(--surface);border:1px solid var(--lig
 <nav class="bas"><div class="in" id="nav"></div></nav>
 <div class="toast" id="toast" hidden></div>
 <input id="phIn" type="file" accept="image/*" capture="environment" hidden>
+<!-- Hors de #app : au retour du sélecteur de fichiers, render() ne doit pas remplacer ce champ (sinon le fichier choisi est perdu). -->
+<input id="imp" type="file" accept=".json,.txt,application/json,text/plain" hidden>
 
 <script>
 // ———— Stockage ————
@@ -720,7 +722,7 @@ function vGerant(){
     ${conf.sauvMdp?`<p class="note">✓ Activée. Mot de passe de sauvegarde : <b>${voirMdp?esc(conf.sauvMdp):"••••••••"}</b> <button class="mini" data-voirmdp>${voirMdp?"Cacher":"Voir"}</button><br>Notez-le sur papier, chez vous : sans lui, le fichier ne s'ouvre pas.</p>`:""}
     <div class="form"><input id="sm1" type="password" autocomplete="new-password" placeholder="${conf.sauvMdp?"Nouveau mot de passe":"Mot de passe de sauvegarde"} (8 caractères mini)"><input id="sm2" type="password" autocomplete="new-password" placeholder="Retaper le mot de passe"><button class="btn full" data-sauvmdp>${conf.sauvMdp?"Changer le mot de passe":"Activer la sauvegarde du jour"}</button>${conf.sauvMdp?`<button class="btn full" data-sauvj>💾 Sauvegarder maintenant</button>`:""}</div>`;
     h+=`<h2>Sauvegarde manuelle</h2><p class="note">Toutes les données (clients, ventes, stock) sont sur cette tablette. Si elle est perdue ou cassée, tout est perdu. Téléchargez une sauvegarde chaque semaine et gardez le fichier en lieu sûr : il est confidentiel.${conf.sauv?" Dernière sauvegarde : "+dateC(conf.sauv)+".":" Aucune sauvegarde faite."}</p>
-    <div class="form"><input id="sp1" type="password" autocomplete="new-password" placeholder="Mot de passe de la sauvegarde (8 caractères mini)"><input id="sp2" type="password" autocomplete="new-password" placeholder="Retaper le mot de passe"><button class="btn full" data-export>Télécharger une sauvegarde protégée</button><p class="note full" style="margin:0">Sans ce mot de passe, le fichier est illisible, même pour SIBYX. Notez-le : il ne peut pas être récupéré.</p><label class="mini full" for="imp" style="text-align:center;padding:11px;cursor:pointer">Restaurer une sauvegarde…</label><input id="imp" type="file" accept=".json,.txt,application/json,text/plain" hidden></div>
+    <div class="form"><input id="sp1" type="password" autocomplete="new-password" placeholder="Mot de passe de la sauvegarde (8 caractères mini)"><input id="sp2" type="password" autocomplete="new-password" placeholder="Retaper le mot de passe"><button class="btn full" data-export>Télécharger une sauvegarde protégée</button><p class="note full" style="margin:0">Sans ce mot de passe, le fichier est illisible, même pour SIBYX. Notez-le : il ne peut pas être récupéré.</p><label class="mini full" for="imp" style="text-align:center;padding:11px;cursor:pointer">Restaurer une sauvegarde…</label></div>
     ${impData&&impData.verrou?`<div class="ecart ko">Sauvegarde protégée. Entrez son mot de passe :<div class="form" style="margin-top:8px"><input id="ipw" class="full" type="password" autocomplete="off" placeholder="Mot de passe de la sauvegarde"><button class="mini danger" data-impdech>Ouvrir le fichier</button><button class="mini" data-impno>Annuler</button></div></div>`:impData?`<div class="ecart ko">${impData.ancien?"⚠️ Ancienne sauvegarde non protégée. ":""}Ce fichier date du ${dateC(impData.date)}. Il va <b>remplacer</b> toutes les données de cette tablette.<div class="acts" style="justify-content:flex-start;margin-top:8px"><button class="mini danger" data-impok>Oui, remplacer</button><button class="mini" data-impno>Annuler</button></div></div>`:""}
     <p class="note">Les données restent uniquement sur cet appareil : elles ne sont envoyées nulle part, pas même à SIBYX. L'appli marche aussi sans internet. Utilisez toujours le même appareil au salon.</p>`;
   }
