@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nqNMLqGXMbk9+qCrXgAhPHAGkaEHoP6Cl2EF21FwtRs=' 'sha256-0VX+bZi/yHgRX7oDVlHRy+o0dwrawmekxXVS5Vt1kjc='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nqNMLqGXMbk9+qCrXgAhPHAGkaEHoP6Cl2EF21FwtRs=' 'sha256-Em5KbeLBWoVA7FLAUZcDUKdyfeEMH8pr7tvkDWvzMuM='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -223,7 +223,7 @@ pre.wa{white-space:pre-wrap;background:var(--surface);border:1px solid var(--lig
 </div></main>
 <footer class="credit">
   <div class="sx"><span class="sxm">SIBYX</span><span>Intelligence Digitale</span></div>
-  <p>Application conçue et développée par SIBYX pour <span id="pourSalon">Balila Barber Street</span>.</p>
+  <p>Application conçue et développée par SIBYX pour <span id="pourSalon">Balila Barber Street</span>. <small>(version du 25 nov., restauration corrigée)</small></p>
   <p>Contact : <span class="sel num">+223 83 72 81 39</span> · <span class="sel">mistercamara27@gmail.com</span></p>
 </footer>
 <div class="panier" id="panier" hidden></div>
@@ -336,7 +336,7 @@ function semerDemo(){
 let vue="caisse", ouvert=false, onglet="bilan";
 let panier=[], coif=null, paie="Espèces", ctel="", cnom="", offrir=false, rdvLie=null;
 let confAnnul=null, confReset=false, recherche="";
-let annulCode=null, sansNum=null, lierT=null, cpar="", cbon=false, dernierPar=null, qCoif="", confDel=null, editProd=null, etapeA=1, cok=false, cann="", dernier=null, ficheTel=null, filtreC="tous", confSup=false, impData=null, voirMdp=false;
+let annulCode=null, sansNum=null, lierT=null, cpar="", cbon=false, dernierPar=null, qCoif="", confDel=null, editProd=null, etapeA=1, cok=false, cann="", dernier=null, ficheTel=null, filtreC="tous", confSup=false, impData=null, voirMdp=false, colle=false;
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.k);toast.k=setTimeout(()=>t.hidden=true,1800)}
 const actifs=a=>a.filter(x=>!x.off);
 const coifN=id=>(conf.coiffeurs.find(c=>c.id===id)||{n:"?"}).n;
@@ -722,7 +722,7 @@ function vGerant(){
     ${conf.sauvMdp?`<p class="note">✓ Activée. Mot de passe de sauvegarde : <b>${voirMdp?esc(conf.sauvMdp):"••••••••"}</b> <button class="mini" data-voirmdp>${voirMdp?"Cacher":"Voir"}</button><br>Notez-le sur papier, chez vous : sans lui, le fichier ne s'ouvre pas.</p>`:""}
     <div class="form"><input id="sm1" type="password" autocomplete="new-password" placeholder="${conf.sauvMdp?"Nouveau mot de passe":"Mot de passe de sauvegarde"} (8 caractères mini)"><input id="sm2" type="password" autocomplete="new-password" placeholder="Retaper le mot de passe"><button class="btn full" data-sauvmdp>${conf.sauvMdp?"Changer le mot de passe":"Activer la sauvegarde du jour"}</button>${conf.sauvMdp?`<button class="btn full" data-sauvj>💾 Sauvegarder maintenant</button>`:""}</div>`;
     h+=`<h2>Sauvegarde manuelle</h2><p class="note">Toutes les données (clients, ventes, stock) sont sur cette tablette. Si elle est perdue ou cassée, tout est perdu. Téléchargez une sauvegarde chaque semaine et gardez le fichier en lieu sûr : il est confidentiel.${conf.sauv?" Dernière sauvegarde : "+dateC(conf.sauv)+".":" Aucune sauvegarde faite."}</p>
-    <div class="form"><input id="sp1" type="password" autocomplete="new-password" placeholder="Mot de passe de la sauvegarde (8 caractères mini)"><input id="sp2" type="password" autocomplete="new-password" placeholder="Retaper le mot de passe"><button class="btn full" data-export>Télécharger une sauvegarde protégée</button><p class="note full" style="margin:0">Sans ce mot de passe, le fichier est illisible, même pour SIBYX. Notez-le : il ne peut pas être récupéré.</p><label class="mini full" for="imp" style="text-align:center;padding:11px;cursor:pointer">Restaurer une sauvegarde…</label></div>
+    <div class="form"><input id="sp1" type="password" autocomplete="new-password" placeholder="Mot de passe de la sauvegarde (8 caractères mini)"><input id="sp2" type="password" autocomplete="new-password" placeholder="Retaper le mot de passe"><button class="btn full" data-export>Télécharger une sauvegarde protégée</button><p class="note full" style="margin:0">Sans ce mot de passe, le fichier est illisible, même pour SIBYX. Notez-le : il ne peut pas être récupéré.</p><label class="mini full" for="imp" style="text-align:center;padding:11px;cursor:pointer">Restaurer une sauvegarde…</label><button class="mini full" data-colle>Ou coller le texte d'une sauvegarde</button>${colle?`<textarea id="colTx" class="full" rows="4" placeholder="Collez ici tout le texte du fichier de sauvegarde" style="font-size:12px"></textarea><button class="mini danger full" data-colleok>Lire la sauvegarde collée</button>`:""}</div>
     ${impData&&impData.verrou?`<div class="ecart ko">Sauvegarde protégée. Entrez son mot de passe :<div class="form" style="margin-top:8px"><input id="ipw" class="full" type="password" autocomplete="off" placeholder="Mot de passe de la sauvegarde"><button class="mini danger" data-impdech>Ouvrir le fichier</button><button class="mini" data-impno>Annuler</button></div></div>`:impData?`<div class="ecart ko">${impData.ancien?"⚠️ Ancienne sauvegarde non protégée. ":""}Ce fichier date du ${dateC(impData.date)}. Il va <b>remplacer</b> toutes les données de cette tablette.<div class="acts" style="justify-content:flex-start;margin-top:8px"><button class="mini danger" data-impok>Oui, remplacer</button><button class="mini" data-impno>Annuler</button></div></div>`:""}
     <p class="note">Les données restent uniquement sur cet appareil : elles ne sont envoyées nulle part, pas même à SIBYX. L'appli marche aussi sans internet. Utilisez toujours le même appareil au salon.</p>`;
   }
@@ -765,7 +765,7 @@ document.addEventListener("change",e=>{
     compresser(f).then(d=>phAjout(t,d)).then(()=>{toast("Photo enregistrée");if(dernier===t&&vue==="caisse"){}chargerPhotos()}).catch(()=>toast("Photo impossible"));return}if(e.target.id==="offrir"){offrir=e.target.checked;rPanier()}
   if(e.target.id==="cok")cok=e.target.checked;
   if(e.target.id==="cbon"){cbon=e.target.checked;rPanier()}
-  if(e.target.id==="imp"&&e.target.files[0]){const f=e.target.files[0];e.target.value="";if(f.size>60e6){toast("Fichier trop gros");return}const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||o.app!=="bbs")throw 0;impData=o.chiffre?{verrou:o}:controlerSauvegarde(o)}catch(x){impData=null;toast("Ce fichier n'est pas une sauvegarde valide de l'appli")}render()};r.readAsText(f)}});
+  if(e.target.id==="imp"&&e.target.files[0]){const f=e.target.files[0];e.target.value="";toast("Fichier reçu, lecture…");if(f.size>60e6){toast("Fichier trop gros");return}const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||o.app!=="bbs")throw 0;impData=o.chiffre?{verrou:o}:controlerSauvegarde(o)}catch(x){impData=null;toast("Ce fichier n'est pas une sauvegarde valide de l'appli")}render()};r.readAsText(f)}});
 // Lien WhatsApp ouvert : on note l'envoi pour ne pas l'envoyer deux fois
 document.addEventListener("click",e=>{const l=e.target.closest("a[data-env]");if(!l)return;const[k,t]=l.dataset.env.split("|"),c=clients[t];if(!c)return;c.msg=c.msg||{};
   if(k==="promo"&&conf.promo){c.msg.promo=c.msg.promo||{};c.msg.promo[conf.promo.id]=Date.now()}else if(k==="anniv")c.msg.anniv=new Date().getFullYear();else c.msg[k]=Date.now();
@@ -817,6 +817,8 @@ document.addEventListener("click",e=>{
   if("export" in a){const m1=document.getElementById("sp1").value,m2=document.getElementById("sp2").value;if(m1.length<8){toast("Mot de passe : 8 caractères minimum");return}if(m1!==m2){toast("Les deux mots de passe sont différents");return}
     b.disabled=true;telechargerSauvegarde(m1).then(()=>{conf.sauv=Date.now();saveConf();toast("Sauvegarde protégée téléchargée");render()}).catch(()=>{b.disabled=false;toast("Sauvegarde impossible")});return}
   if("impdech" in a){const m=document.getElementById("ipw").value;b.disabled=true;dechiffrer(impData.verrou,m).then(x=>{impData=controlerSauvegarde({...x,chiffre:true});render()}).catch(()=>{b.disabled=false;toast("Mot de passe incorrect ou fichier abîmé")});return}
+  if("colle" in a){colle=!colle;return render()}
+  if("colleok" in a){const t=(document.getElementById("colTx").value||"").trim();try{const o=JSON.parse(t);if(!o||o.app!=="bbs")throw 0;impData=o.chiffre?{verrou:o}:controlerSauvegarde(o);colle=false}catch(x){impData=null;toast("Ce texte n'est pas une sauvegarde valide de l'appli")}return render()}
   if("impno" in a){impData=null;return render()}
   if("impok" in a){if(!impData||impData.verrou||!impData.data)return;try{effacerTout();Object.entries(impData.data).forEach(([k,v])=>{if(k.startsWith("bbs3:"))localStorage.setItem(k,v)})}catch(x){toast("Restauration impossible");return}
     (impData.photos?phRemplacer(impData.photos):Promise.resolve()).catch(()=>{}).then(()=>location.reload());return}
