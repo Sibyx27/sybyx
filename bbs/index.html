@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nqNMLqGXMbk9+qCrXgAhPHAGkaEHoP6Cl2EF21FwtRs=' 'sha256-Em5KbeLBWoVA7FLAUZcDUKdyfeEMH8pr7tvkDWvzMuM='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-nqNMLqGXMbk9+qCrXgAhPHAGkaEHoP6Cl2EF21FwtRs=' 'sha256-U8mO0g7SyaP846dCfkZs86/1xxCRVCsy/0r1uKfircc='; worker-src 'self'; manifest-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -223,7 +223,7 @@ pre.wa{white-space:pre-wrap;background:var(--surface);border:1px solid var(--lig
 </div></main>
 <footer class="credit">
   <div class="sx"><span class="sxm">SIBYX</span><span>Intelligence Digitale</span></div>
-  <p>Application conçue et développée par SIBYX pour <span id="pourSalon">Balila Barber Street</span>. <small>(version du 25 nov., restauration corrigée)</small></p>
+  <p>Application conçue et développée par SIBYX pour <span id="pourSalon">Balila Barber Street</span>. <small>(version du 26 nov., restauration corrigée)</small></p>
   <p>Contact : <span class="sel num">+223 83 72 81 39</span> · <span class="sel">mistercamara27@gmail.com</span></p>
 </footer>
 <div class="panier" id="panier" hidden></div>
@@ -415,7 +415,7 @@ async function dechiffrer(o,mdp){const k=await cleSauv(mdp,unb64(o.sel));const c
 // ———— 7. Contrôle d'un fichier de sauvegarde avant de l'accepter ————
 const CLE_OK=/^bbs3:(conf|cli|rdv|theme|j:\d{4}-\d{2}-\d{2})$/;
 function controlerSauvegarde(o){if(!o||typeof o!=="object"||typeof o.data!=="object"||!o.data)throw new Error("format");
-  const data={};Object.entries(o.data).forEach(([k,v])=>{if(!CLE_OK.test(k))return;if(typeof v!=="string"||v.length>15e6)throw new Error("taille");JSON.parse(v);data[k]=v});
+  const data={};Object.entries(o.data).forEach(([k,v])=>{if(!CLE_OK.test(k))return;if(typeof v!=="string"||v.length>15e6)throw new Error("taille");if(k==="bbs3:theme"){if(/^(auto|soir|clair|sombre)$/.test(v))data[k]=v;return}try{JSON.parse(v)}catch(x){return}data[k]=v});
   if(!data["bbs3:conf"])throw new Error("conf");
   {const cf=JSON.parse(data["bbs3:conf"]);if(!cf||typeof cf!=="object"||!Array.isArray(cf.coiffeurs)||!Array.isArray(cf.services)||!Array.isArray(cf.produits)||!cf.coiffeurs.length)throw new Error("conf incomplète");
     cf.salon=String(cf.salon||"Mon salon").slice(0,60);cf.tel=/^\d{8}$/.test(cf.tel||"")?cf.tel:"";cf.fid=Math.min(50,Math.max(2,parseInt(cf.fid)||10));cf.par=Math.max(0,parseInt(cf.par)||0);data["bbs3:conf"]=JSON.stringify(cf)}
@@ -816,7 +816,7 @@ document.addEventListener("click",e=>{
     fichierSauvegarde(conf.sauvMdp,"txt").then(f=>{sauvPrete=f;return partagerSauv(f)}).then(r=>{if(r==="ok")sauvOk();else toast("Appuyez sur « Envoyer sur WhatsApp »");render()}).catch(()=>{sauvPrete=null;toast("Sauvegarde impossible");render()});return}
   if("export" in a){const m1=document.getElementById("sp1").value,m2=document.getElementById("sp2").value;if(m1.length<8){toast("Mot de passe : 8 caractères minimum");return}if(m1!==m2){toast("Les deux mots de passe sont différents");return}
     b.disabled=true;telechargerSauvegarde(m1).then(()=>{conf.sauv=Date.now();saveConf();toast("Sauvegarde protégée téléchargée");render()}).catch(()=>{b.disabled=false;toast("Sauvegarde impossible")});return}
-  if("impdech" in a){const m=document.getElementById("ipw").value;b.disabled=true;dechiffrer(impData.verrou,m).then(x=>{impData=controlerSauvegarde({...x,chiffre:true});render()}).catch(()=>{b.disabled=false;toast("Mot de passe incorrect ou fichier abîmé")});return}
+  if("impdech" in a){const m=document.getElementById("ipw").value;b.disabled=true;dechiffrer(impData.verrou,m).then(x=>{try{impData=controlerSauvegarde({...x,chiffre:true})}catch(e){b.disabled=false;toast("Mot de passe correct, mais le contenu du fichier est refusé ("+(e&&e.message||"format")+")");return}render()},()=>{b.disabled=false;toast("Mot de passe incorrect ou fichier abîmé")});return}
   if("colle" in a){colle=!colle;return render()}
   if("colleok" in a){const t=(document.getElementById("colTx").value||"").trim();try{const o=JSON.parse(t);if(!o||o.app!=="bbs")throw 0;impData=o.chiffre?{verrou:o}:controlerSauvegarde(o);colle=false}catch(x){impData=null;toast("Ce texte n'est pas une sauvegarde valide de l'appli")}return render()}
   if("impno" in a){impData=null;return render()}
